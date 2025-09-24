@@ -1,0 +1,45 @@
+package com.wordonline.account.entity;
+
+import java.util.List;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Table;
+
+import com.wordonline.account.domain.Member;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Table("member")
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
+public class MemberEntity {
+
+    @Id
+    private Long id;
+    private Long principalId;
+    private String email;
+    private String passwordHash;
+
+    public MemberEntity(Member member) {
+        this(member.getId(), member.getPrincipalId(), member.getEmail(), member.getPasswordHash());
+    }
+
+    public Member toDomain() {
+        return toDomain(null);
+    }
+
+    public Member toDomain(List<Authority> authorities) {
+        return new Member(
+                id,
+                principalId,
+                email,
+                passwordHash,
+                authorities.stream()
+                        .map(Authority::getValue)
+                        .toList()
+        );
+    }
+}

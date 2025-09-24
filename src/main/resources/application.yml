@@ -1,0 +1,15 @@
+spring:
+  application:
+    name: account-server
+  config:
+    import: optional:file:.env[.properties]
+  r2dbc:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  sql:
+    init:
+      mode: never
+
+jwt:
+  secret: ${JWT_SECRET}
