@@ -32,4 +32,4 @@ jobs:
         run: bash remote-deploy.sh
         env:
           DEPLOY_SERVER: ${{ secrets.GAME_SERVER_HOST }}
-          $DEPLOY_USER: ${{ secrets.GAME_SERVER_USER }}
+          DEPLOY_USER: ${{ secrets.GAME_SERVER_USER }}
