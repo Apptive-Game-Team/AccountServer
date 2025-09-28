@@ -18,6 +18,9 @@ import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -68,17 +71,31 @@ public class WebSecurityConfig {
                         .pathMatchers(
                                 "/api/members",
                                 "/api/members/login",
+                                "/login",
                                 "/join").permitAll()
                         .pathMatchers("/admin/**").hasRole("ADMIN")
                         .pathMatchers("/my-page/**").hasAuthority("ROLE_USER")
 
                         .anyExchange().authenticated()
                 );
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
         http.formLogin(form -> form.loginPage("/login"));
         http.logout(logout -> logout.logoutUrl("/logout"));
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(jwtDecoder)));
         http.csrf(CsrfSpec::disable);
         return http.build();
+    }
+
+    private CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.addAllowedOriginPattern("*");
+        configuration.addAllowedMethod("*");
+        configuration.addAllowedHeader("*");
+        configuration.setAllowCredentials(true);
+
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
