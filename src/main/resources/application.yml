@@ -12,5 +12,5 @@ spring:
       mode: never
 
 jwt:
-  access-private-key: classpath:jwt/keys/private.pem
-  access-public-key: classpath:jwt/keys/public.pem
+  access-private-key: ${JWT_PRIVATE_KEY}
+  access-public-key: ${JWT_PUBLIC_KEY}
