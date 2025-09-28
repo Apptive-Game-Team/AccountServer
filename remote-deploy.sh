@@ -27,5 +27,7 @@ else
   sleep 5
 fi
 
-nohup java -jar $DEPLOY_PATH/$JAR_NAME > $DEPLOY_PATH/app.log 2>&1 &
+cd $DEPLOY_PATH
+
+nohup java -jar $JAR_NAME > app.log 2>&1 &
 EOF
