@@ -2,6 +2,7 @@ package com.wordonline.account.service;
 
 import java.util.List;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.wordonline.account.domain.Member;
@@ -27,6 +28,7 @@ public class MemberService {
     private final MemberAuthorityRepository memberAuthorityRepository;
     private final AuthorityRepository authorityRepository;
     private final PrincipalRepository principalRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public Mono<Member> getMember(Long memberId) {
         Mono<MemberEntity> memberEntityMono = memberRepository.findById(memberId);
@@ -57,10 +59,10 @@ public class MemberService {
         return principalRepository.save(new Principal())
                 .flatMap(
                 principal -> {
-                    Member member = Member.createWithPasswordPlain(
+                    Member member = new Member(
                             principal.getId(),
                             memberRequest.email(),
-                            memberRequest.password()
+                            passwordEncoder.encode(memberRequest.password())
                     );
                     return memberRepository.save(new MemberEntity(member));
                 }

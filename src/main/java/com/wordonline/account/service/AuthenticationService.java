@@ -1,7 +1,19 @@
 package com.wordonline.account.service;
 
+import java.time.Instant;
+import java.util.stream.Collectors;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.MapReactiveUserDetailsService;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.stereotype.Service;
 
 import com.wordonline.account.config.JwtProvider;
@@ -41,17 +53,6 @@ public class AuthenticationService {
         Mono<Member> memberMono = memberService.getMember(
                 memberRequest.email());
 
-        return memberMono.map(member -> {
-                    PrincipalDetails principal = new PrincipalDetails(member);
-
-                    Authentication authentication = new UsernamePasswordAuthenticationToken(
-                            principal,
-                            null,
-                            principal.getAuthorities());
-
-                    String jwtToken = jwtProvider.createToken(authentication);
-                    return new AuthResponse(jwtToken);
-                }
-        );
+        return memberMono.map(member -> new AuthResponse(jwtProvider.getJwt(member)));
     }
 }

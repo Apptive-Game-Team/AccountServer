@@ -6,35 +6,33 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.security.Principal;
 import java.util.Collection;
 
-public class PrincipalDetails implements UserDetails, Principal {
-
-    private final Member member;
+public class PrincipalDetails extends Member implements UserDetails, Principal {
 
     public PrincipalDetails(Member member) {
-        this.member = member;
+        super(member);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return member.getAuthorities()
+        return this.getAuthorityStringList()
                 .stream()
                 .map(
-                        value -> (GrantedAuthority) () -> value
+                        authorityString -> (GrantedAuthority) () -> String.valueOf(authorityString)
                 ).toList();
     }
 
     public Long getMemberId() {
-        return member.getId();
+        return getId();
     }
 
     @Override
     public String getPassword() {
-        return "";
+        return getPasswordHash();
     }
 
     @Override
     public String getUsername() {
-        return "user" + getMemberId();
+        return getEmail();
     }
 
     @Override

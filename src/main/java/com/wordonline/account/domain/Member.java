@@ -3,6 +3,7 @@ package com.wordonline.account.domain;
 import java.util.List;
 
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,19 +16,23 @@ public class Member {
     private Long principalId;
     private String email;
     private String passwordHash;
-    private List<String> authorities;
+    private List<String> authorityStringList;
 
-    public boolean validatePassword(String passwordPlain) {
-        return BCrypt.checkpw(passwordPlain, passwordHash);
+    public boolean validatePassword(String passwordPlain, PasswordEncoder passwordEncoder) {
+        return passwordEncoder.matches(passwordPlain, passwordHash);
     }
 
-    public static Member createWithPasswordPlain(Long principalId, String email, String password) {
-        return new Member(
+    public Member(Long principalId, String email, String passwordHash) {
+        this(
                 null,
                 principalId,
                 email,
-                BCrypt.hashpw(password, BCrypt.gensalt()),
+                passwordHash,
                 null
         );
+    }
+
+    public Member(Member member) {
+        this(member.id, member.principalId, member.email, member.passwordHash, member.authorityStringList);
     }
 }

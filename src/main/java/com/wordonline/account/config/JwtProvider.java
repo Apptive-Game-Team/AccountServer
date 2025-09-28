@@ -1,49 +1,54 @@
 package com.wordonline.account.config;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Decoders;
-import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import java.time.Instant;
+import java.util.stream.Collectors;
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.stereotype.Component;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
+import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
+import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.stream.Collectors;
-
+import com.wordonline.account.domain.Member;
 import com.wordonline.account.domain.PrincipalDetails;
 
-@Slf4j
-@Component
+import lombok.RequiredArgsConstructor;
+
+@Service
 @RequiredArgsConstructor
 public class JwtProvider {
 
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60 * 24;
+    private final JwtEncoder jwtEncoder;
 
-    private final JwtUtil jwtUtil;
+    private final long expiry = 36000L;
 
-    public String createToken(Authentication authentication) {
+    public String getJwt(Member member) {
+        PrincipalDetails principal = new PrincipalDetails(member);
 
-        String authorities = authentication.getAuthorities().stream()
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                principal,
+                null,
+                principal.getAuthorities());
+
+        Instant now = Instant.now();
+
+        String scope = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
-                .map(String::toUpperCase)
-                .collect(Collectors.joining(","));
+                .collect(Collectors.joining(" "));
 
-        Date now = new Date();
-        Date expiration = new Date(now.getTime() + EXPIRATION_TIME);
-
-        return Jwts.builder()
-                .subject(authentication.getName())
-                .claim("auth", authorities)
-                .claim("memberId", ((PrincipalDetails) authentication.getPrincipal()).getMemberId())
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
                 .issuedAt(now)
-                .expiration(expiration)
-                .signWith(jwtUtil.getSecretKey())
-                .compact();
+                .expiresAt(now.plusSeconds(expiry))
+                .subject(authentication.getName())
+                .claim("scope", scope)
+                .claim("memberId", member.getId())
+                .build();
+
+        Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(claims));
+        return jwt.getTokenValue();
     }
 }

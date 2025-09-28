@@ -1,6 +1,7 @@
 package com.wordonline.account.entity;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
@@ -37,7 +38,9 @@ public class MemberEntity {
                 principalId,
                 email,
                 passwordHash,
-                authorities.stream()
+                Optional.ofNullable(authorities)
+                        .orElse(List.of())
+                        .stream()
                         .map(Authority::getValue)
                         .toList()
         );
