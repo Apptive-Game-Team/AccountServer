@@ -6,7 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.wordonline.account.domain.Member;
-import com.wordonline.account.dto.MemberRequest;
+import com.wordonline.account.dto.JoinRequest;
 import com.wordonline.account.entity.Authority;
 import com.wordonline.account.entity.MemberAuthority;
 import com.wordonline.account.entity.MemberEntity;
@@ -55,14 +55,15 @@ public class MemberService {
                 });
     }
 
-    public Mono<Member> createMember(MemberRequest memberRequest) {
+    public Mono<Member> createMember(JoinRequest joinRequest) {
         return principalRepository.save(new Principal())
                 .flatMap(
                 principal -> {
                     Member member = new Member(
                             principal.getId(),
-                            memberRequest.email(),
-                            passwordEncoder.encode(memberRequest.password())
+                            joinRequest.name(),
+                            joinRequest.email(),
+                            passwordEncoder.encode(joinRequest.password())
                     );
                     return memberRepository.save(new MemberEntity(member));
                 }

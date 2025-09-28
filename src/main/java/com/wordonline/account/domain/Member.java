@@ -14,6 +14,7 @@ public class Member {
 
     private Long id;
     private Long principalId;
+    private String name;
     private String email;
     private String passwordHash;
     private List<String> authorityStringList;
@@ -22,10 +23,11 @@ public class Member {
         return passwordEncoder.matches(passwordPlain, passwordHash);
     }
 
-    public Member(Long principalId, String email, String passwordHash) {
+    public Member(Long principalId, String name, String email, String passwordHash) {
         this(
                 null,
                 principalId,
+                name,
                 email,
                 passwordHash,
                 null
@@ -33,6 +35,6 @@ public class Member {
     }
 
     public Member(Member member) {
-        this(member.id, member.principalId, member.email, member.passwordHash, member.authorityStringList);
+        this(member.id, member.principalId, member.name, member.email, member.passwordHash, member.authorityStringList);
     }
 }

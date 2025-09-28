@@ -25,3 +25,5 @@ CREATE TABLE member_authority (
     member_id BIGINT REFERENCES member(id),
     authority_id BIGINT REFERENCES authority(id)
 );
+
+ALTER TABLE member ADD COLUMN name VARCHAR(31);
