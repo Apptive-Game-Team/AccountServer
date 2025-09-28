@@ -30,3 +30,6 @@ jobs:
 
       - name: Run deploy script
         run: bash remote-deploy.sh
+        env:
+          DEPLOY_SERVER: ${{ secrets.GAME_SERVER_HOST }}
+          $DEPLOY_USER: ${{ secrets.GAME_SERVER_USER }}
