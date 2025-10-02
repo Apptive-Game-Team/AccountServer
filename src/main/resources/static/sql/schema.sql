@@ -27,3 +27,15 @@ CREATE TABLE member_authority (
 );
 
 ALTER TABLE member ADD COLUMN name VARCHAR(31);
+
+ALTER TABLE member ALTER COLUMN email TYPE VARCHAR(100);
+
+CREATE TABLE key_value (
+  id BIGSERIAL PRIMARY KEY,
+  principal_id BIGINT REFERENCES principal(id),
+  key VARCHAR(31),
+  value VARCHAR(31)
+);
+
+ALTER TABLE key_value ADD CONSTRAINT uq_key_value_principal_id_key
+UNIQUE (principal_id, key);
