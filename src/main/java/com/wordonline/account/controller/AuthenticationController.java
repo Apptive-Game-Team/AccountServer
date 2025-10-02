@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wordonline.account.dto.AuthResponse;
+import com.wordonline.account.dto.GuestRequest;
 import com.wordonline.account.dto.JoinRequest;
 import com.wordonline.account.dto.LoginRequest;
 import com.wordonline.account.service.AuthenticationService;
@@ -30,10 +30,14 @@ public class AuthenticationController {
 
     @PostMapping("/members/guest")
     public Mono<AuthResponse> createGuestMember(
-            @RequestBody MultiValueMap<String, String> formData
+            @RequestBody(required = false) GuestRequest guestRequest
     ) {
-        log.info("[GUEST] create guest name: {}", formData.getFirst("name"));
-        return authenticationService.joinGuest(formData.getFirst("name"));
+        if (guestRequest == null) {
+            return authenticationService.joinGuest(null);
+        }
+
+        log.info("[GUEST] create guest name: {}", guestRequest.name());
+        return authenticationService.joinGuest(guestRequest.name());
     }
 
     @PostMapping("/members")
