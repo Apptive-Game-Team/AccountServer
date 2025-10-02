@@ -63,7 +63,7 @@ public class AuthenticationService {
 
     public JoinRequest getRandomJoinRequest(String name) {
         String uniqueEmail = "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
-        String guestName = name == null ? "guest_" + System.currentTimeMillis() : name;
+        String guestName = name == null || name.isBlank() || name.isEmpty() ? "guest_" + System.currentTimeMillis() : name;
         String password = "pw_" + System.currentTimeMillis();
         return new JoinRequest(uniqueEmail, guestName, password);
     }
