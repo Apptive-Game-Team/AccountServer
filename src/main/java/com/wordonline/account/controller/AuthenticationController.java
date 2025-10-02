@@ -16,8 +16,10 @@ import com.wordonline.account.dto.LoginRequest;
 import com.wordonline.account.service.AuthenticationService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")
@@ -29,6 +31,7 @@ public class AuthenticationController {
     public Mono<AuthResponse> createGuestMember(
             @RequestParam(required = false) String name
     ) {
+        log.info("[GUEST] create guest name: {}", name);
         return authenticationService.joinGuest(name);
     }
 
