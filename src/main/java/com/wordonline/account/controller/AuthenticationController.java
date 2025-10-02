@@ -2,6 +2,7 @@ package com.wordonline.account.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,10 +30,10 @@ public class AuthenticationController {
 
     @PostMapping("/members/guest")
     public Mono<AuthResponse> createGuestMember(
-            @RequestParam(required = false) String name
+            @RequestBody MultiValueMap<String, String> formData
     ) {
-        log.info("[GUEST] create guest name: {}", name);
-        return authenticationService.joinGuest(name);
+        log.info("[GUEST] create guest name: {}", formData.getFirst("name"));
+        return authenticationService.joinGuest(formData.getFirst("name"));
     }
 
     @PostMapping("/members")
