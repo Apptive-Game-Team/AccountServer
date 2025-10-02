@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wordonline.account.dto.AuthResponse;
@@ -24,12 +25,17 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
 
+    @PostMapping("/members/guest")
+    public Mono<AuthResponse> createGuestMember(
+            @RequestParam(required = false) String name
+    ) {
+        return authenticationService.joinGuest(name);
+    }
 
     @PostMapping("/members")
     public Mono<AuthResponse> createMember(
         @Validated @RequestBody JoinRequest joinRequest
     ) {
-
         return authenticationService.join(joinRequest);
     }
 

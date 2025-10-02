@@ -1,5 +1,7 @@
 package com.wordonline.account.service;
 
+import java.util.UUID;
+
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,5 +54,17 @@ public class AuthenticationService {
                     }
                     sink.next(new AuthResponse(jwtProvider.getJwt(member)));
                 });
+    }
+
+    public Mono<AuthResponse> joinGuest(String name) {
+        JoinRequest joinRequest = getRandomJoinRequest(name);
+        return join(joinRequest);
+    }
+
+    public JoinRequest getRandomJoinRequest(String name) {
+        String uniqueEmail = "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
+        String guestName = name == null ? "guest_" + System.currentTimeMillis() : name;
+        String password = "pw_" + System.currentTimeMillis();
+        return new JoinRequest(uniqueEmail, guestName, password);
     }
 }
