@@ -70,6 +70,7 @@ public class WebSecurityConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
                                 "/api/members",
+                                "/api/members/*",
                                 "/api/members/login",
                                 "/login",
                                 "/join").permitAll()
