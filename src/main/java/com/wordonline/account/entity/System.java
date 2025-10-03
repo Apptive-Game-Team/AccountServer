@@ -3,6 +3,9 @@ package com.wordonline.account.entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import lombok.Getter;
+
+@Getter
 @Table("system")
 public class System {
 
