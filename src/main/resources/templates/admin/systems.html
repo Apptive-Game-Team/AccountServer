@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>System List</title>
+</head>
+<body>
+    <div th:replace="~{admin/fragments/nav :: admin-nav}"></div>
+    <h1>System List</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Principal ID</th>
+                <th>Created By</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="system : ${systems}">
+                <td th:text="${system.id}"></td>
+                <td th:text="${system.name}"></td>
+                <td th:text="${system.principalId}"></td>
+                <td th:text="${system.createdBy}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

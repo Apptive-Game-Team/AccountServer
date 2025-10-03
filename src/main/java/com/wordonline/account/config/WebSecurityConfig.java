@@ -1,13 +1,18 @@
 package com.wordonline.account.config;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -22,19 +27,15 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
-
-import lombok.RequiredArgsConstructor;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
 public class WebSecurityConfig {
+
+    private final CookieAuthenticationFilter cookieAuthenticationFilter;
 
     @Value("${jwt.access-public-key}")
     private RSAPublicKey rsaPublicKey;
@@ -74,15 +75,20 @@ public class WebSecurityConfig {
                                 "/api/members/login",
                                 "/login",
                                 "/join").permitAll()
-                        .pathMatchers("/admin/**").hasRole("ADMIN")
-                        .pathMatchers("/my-page/**").hasAuthority("ROLE_USER")
+//                        .pathMatchers("/admin/**").hasRole("ADMIN")
+//                        .pathMatchers("/my-page/**").hasAuthority("ROLE_USER")
 
                         .anyExchange().authenticated()
                 );
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        http.formLogin(form -> form.loginPage("/login"));
-        http.logout(logout -> logout.logoutUrl("/logout"));
+        // Disable default form login
+        http.formLogin(ServerHttpSecurity.FormLoginSpec::disable);
+        http.logout(ServerHttpSecurity.LogoutSpec::disable);
+
+        // Add cookie filter before authentication
+        http.addFilterBefore(cookieAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION);
+
         http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(jwtDecoder)));
         http.csrf(CsrfSpec::disable);
         return http.build();
