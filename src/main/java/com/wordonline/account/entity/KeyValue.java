@@ -16,13 +16,14 @@ public class KeyValue {
 
     @Id
     private Long id;
-    private Long principalId;
+    private Long memberId;
+    private Long systemId;
     private String key;
 
     @Setter
     private String value;
 
-    public KeyValue(Long principalId, String key, String value) {
-        this(null, principalId, key, value);
+    public KeyValue(Long memberId, Long systemId, String key, String value) {
+        this(null, memberId, systemId, key, value);
     }
 }

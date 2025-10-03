@@ -25,29 +25,23 @@ public class KeyValueController {
 
     private final KeyValueService keyValueService;
 
-    @GetMapping("/systems/{systemId}/key-values/{key}")
+    @GetMapping("/systems/{systemName}/members/{memberId}/key-values/{key}")
     public Mono<ValueResponse> getValue(
-            @PathVariable Long systemId,
+            @PathVariable String systemName,
+            @PathVariable Long memberId,
             @PathVariable String key
     ) {
-        return keyValueService.getSystemValue(systemId, key);
+        return keyValueService.getValue(memberId, systemName, key);
     }
 
-    @GetMapping("/members/me/key-values/{key}")
-    public Mono<ValueResponse> getMyValue(
-            @AuthenticationPrincipal Jwt principal,
-            @PathVariable String key
-    ) {
-        return keyValueService.getMemberValue(principal.getClaim("memberId"), key);
-    }
-
-    @PutMapping("/members/me/key-values/{key}")
+    @PutMapping("/systems/{systemName}/members/me/key-values/{key}")
     public Mono<ValueResponse> setMyValue(
             @AuthenticationPrincipal Jwt principal,
+            @PathVariable String systemName,
             @PathVariable String key,
             @RequestBody ValueRequest valueRequest
     ) {
-        return keyValueService.setMemberValue(principal.getClaim("memberId"), key, valueRequest.value());
+        return keyValueService.setValue(principal.getClaim("memberId"), systemName, key, valueRequest.value());
     }
 
 }

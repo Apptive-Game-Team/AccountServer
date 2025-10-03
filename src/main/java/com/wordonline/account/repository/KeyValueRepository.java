@@ -8,5 +8,5 @@ import reactor.core.publisher.Mono;
 
 public interface KeyValueRepository extends R2dbcRepository<KeyValue, Long> {
 
-    Mono<KeyValue> findByPrincipalIdAndKey(Long principalId, String key);
+    Mono<KeyValue> findByMemberIdAndSystemIdAndKey(Long memberId, Long systemId, String key);
 }
