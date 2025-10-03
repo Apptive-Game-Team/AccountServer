@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.wordonline.account.config.JwtProvider;
 import com.wordonline.account.domain.Member;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthenticationService {
 
     private final static String LOGIN_FAIL_MESSAGE = "이메일 또는 비밀번호가 잘못됐습니다.";
