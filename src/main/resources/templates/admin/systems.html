@@ -1,29 +1,58 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
 <head>
     <meta charset="UTF-8">
     <title>System List</title>
 </head>
 <body>
+<section>
     <div th:replace="~{admin/fragments/nav :: admin-nav}"></div>
-    <h1>System List</h1>
-    <table>
-        <thead>
+    <div class="container mt-4">
+        <h1>System List</h1>
+
+        <h2 class="mt-4">Create System</h2>
+        <form th:action="@{/admin/systems}" method="post" class="row g-3">
+            <div class="col-auto">
+                <label for="name" class="visually-hidden">System Name:</label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="System Name" required>
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+        </form>
+
+        <hr class="my-4">
+
+        <table class="table table-striped">
+            <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
                 <th>Principal ID</th>
                 <th>Created By</th>
+                <th>Actions</th>
             </tr>
-        </thead>
-        <tbody>
+            </thead>
+            <tbody>
             <tr th:each="system : ${systems}">
                 <td th:text="${system.id}"></td>
                 <td th:text="${system.name}"></td>
                 <td th:text="${system.principalId}"></td>
                 <td th:text="${system.createdBy}"></td>
+                <td>
+                    <form th:action="@{/admin/systems/{id}(id=${system.id})}" method="post" class="row g-2">
+                        <div class="col-auto">
+                            <input type="text" class="form-control" name="name" th:value="${system.name}" required>
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-secondary btn-sm">Update</button>
+                        </div>
+                    </form>
+                </td>
             </tr>
-        </tbody>
-    </table>
+            </tbody>
+        </table>
+    </div>
+</section>
 </body>
 </html>
