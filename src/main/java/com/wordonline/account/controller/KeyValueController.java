@@ -34,6 +34,15 @@ public class KeyValueController {
         return keyValueService.getValue(memberId, systemName, key);
     }
 
+    @GetMapping("/systems/{systemName}/members/me/key-values/{key}")
+    public Mono<ValueResponse> getValue(
+            @PathVariable String systemName,
+            @AuthenticationPrincipal Jwt principal,
+            @PathVariable String key
+    ) {
+        return keyValueService.getValue(principal.getClaim("memberId"), systemName, key);
+    }
+
     @PutMapping("/systems/{systemName}/members/me/key-values/{key}")
     public Mono<ValueResponse> setMyValue(
             @AuthenticationPrincipal Jwt principal,
