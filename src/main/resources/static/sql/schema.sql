@@ -39,3 +39,11 @@ CREATE TABLE key_value (
 
 ALTER TABLE key_value ADD CONSTRAINT uq_key_value_principal_id_key
 UNIQUE (principal_id, key);
+
+ALTER TABLE key_value DROP CONSTRAINT uq_key_value_principal_id_key;
+ALTER TABLE key_value DROP COLUMN principal_id;
+ALTER TABLE key_value ADD COLUMN member_id BIGINT REFERENCES member(id);
+ALTER TABLE key_value ADD COLUMN system_id BIGINT REFERENCES system(id);
+ALTER TABLE key_value ADD CONSTRAINT uq_key_value_member_id_system_id_key UNIQUE (member_id, system_id, key);
+
+ALTER TABLE system ADD COLUMN created_by BIGINT REFERENCES member(id);
