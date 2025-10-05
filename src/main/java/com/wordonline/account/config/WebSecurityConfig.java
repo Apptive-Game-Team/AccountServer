@@ -71,7 +71,6 @@ public class WebSecurityConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
                                 "/api/members",
-                                "/api/members/*",
                                 "/api/members/login",
                                 "/login",
                                 "/join").permitAll()
@@ -82,8 +81,7 @@ public class WebSecurityConfig {
                 );
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        // Disable default form login
-        http.formLogin(ServerHttpSecurity.FormLoginSpec::disable);
+        http.formLogin(formLoginSpec -> formLoginSpec.loginPage("/login"));
         http.logout(ServerHttpSecurity.LogoutSpec::disable);
 
         // Add cookie filter before authentication
