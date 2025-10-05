@@ -12,6 +12,7 @@ import com.wordonline.account.repository.MemberAuthorityRepository;
 import com.wordonline.account.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Service
@@ -49,7 +50,7 @@ public class AuthorizationService {
     public Mono<AuthorityResponse> createAuthority(String name) {
         Authority authority = new Authority(name);
         return authorityRepository.save(authority)
-                .map(savedAuthority -> new AuthorityResponse(authority.getValue()));
+                .map(AuthorityResponse::new);
     }
 
     public Mono<AuthorityResponse> updateAuthority(Long authorityId, String name) {
@@ -58,6 +59,11 @@ public class AuthorizationService {
                     authority.setValue(name);
                     return authorityRepository.save(authority);
                 })
-                .map(savedAuthority -> new AuthorityResponse(savedAuthority.getValue()));
+                .map(AuthorityResponse::new);
+    }
+
+    public Flux<AuthorityResponse> getAuthorities(long offset, int size) {
+        return authorityRepository.findPage(offset, size)
+                .map(AuthorityResponse::new);
     }
 }

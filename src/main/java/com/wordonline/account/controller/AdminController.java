@@ -1,5 +1,6 @@
 package com.wordonline.account.controller;
 
+import com.wordonline.account.service.AuthorizationService;
 import com.wordonline.account.service.MemberService;
 import com.wordonline.account.service.SystemService;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ public class AdminController {
 
     private final SystemService systemService;
     private final MemberService memberService;
+    private final AuthorizationService authorizationService;
 
     @GetMapping
     public String adminHome() {
@@ -81,5 +83,41 @@ public class AdminController {
                     model.addAttribute("size", size);
                     return "admin/members";
                 });
+    }
+
+    @GetMapping("/authorities")
+    public String authorityList(
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        var authorities = authorizationService.getAuthorities(page * size, size);
+        IReactiveDataDriverContextVariable reactiveDataDrivenMode =
+                new ReactiveDataDriverContextVariable(authorities, 1);
+        model.addAttribute("authorities", reactiveDataDrivenMode);
+        // TODO: Add pagination support
+        return "admin/authorities";
+    }
+
+    @PostMapping("/authorities")
+    public String createAuthority(ServerWebExchange exchange) {
+        exchange.getFormData()
+                .flatMap(formdata -> {
+                    String name = formdata.getFirst("name");
+                    return authorizationService.createAuthority(name);
+                }).subscribe();
+        return "redirect:/admin/authorities";
+    }
+
+    @PostMapping("/authorities/{id}")
+    public String updateAuthority(
+            @PathVariable Long id,
+            ServerWebExchange exchange) {
+        exchange.getFormData()
+                .flatMap(formdata -> {
+                    String name = formdata.getFirst("name");
+                    return authorizationService.updateAuthority(id, name);
+                }).subscribe();
+        return "redirect:/admin/authorities";
     }
 }
