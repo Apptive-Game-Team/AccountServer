@@ -41,10 +41,7 @@ public class MemberEntity {
                 email,
                 passwordHash,
                 Optional.ofNullable(authorities)
-                        .orElse(List.of())
-                        .stream()
-                        .map(Authority::getValue)
-                        .toList()
+                        .orElse(List.of()).stream().toList()
         );
     }
 }

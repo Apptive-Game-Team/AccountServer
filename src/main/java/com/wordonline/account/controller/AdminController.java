@@ -1,9 +1,13 @@
 package com.wordonline.account.controller;
 
+import com.wordonline.account.domain.Member;
+import com.wordonline.account.dto.AuthorityResponse;
+import com.wordonline.account.entity.Authority;
 import com.wordonline.account.service.AuthorizationService;
 import com.wordonline.account.service.MemberService;
 import com.wordonline.account.service.SystemService;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -18,6 +22,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import org.thymeleaf.spring6.context.webflux.IReactiveDataDriverContextVariable;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Controller
@@ -119,5 +127,51 @@ public class AdminController {
                     return authorizationService.updateAuthority(id, name);
                 }).subscribe();
         return "redirect:/admin/authorities";
+    }
+
+    @GetMapping("/members/{id}")
+    public Mono<String> memberDetails(@PathVariable Long id, Model model) {
+        Mono<Member> memberMono = memberService.getMember(id);
+        Flux<AuthorityResponse> allAuthoritiesFlux = authorizationService.getAuthorities(0, 1000); // Assuming max 1000 authorities
+
+        return memberMono.zipWith(allAuthoritiesFlux.collectList())
+                .map(tuple -> {
+                    Member member = tuple.getT1();
+                    List<AuthorityResponse> allAuthorities = tuple.getT2();
+
+                    Set<Long> assignedAuthorityIds = member.getAuthorityList().stream()
+                            .map(Authority::getId)
+                            .collect(Collectors.toSet());
+
+                    List<AuthorityResponse> availableAuthorities = allAuthorities.stream()
+                            .filter(auth -> !assignedAuthorityIds.contains(auth.id()))
+                            .collect(Collectors.toList());
+
+                    model.addAttribute("member", member);
+                    model.addAttribute("availableAuthorities", availableAuthorities);
+                    return "admin/member";
+                });
+    }
+
+    @PostMapping("/members/{memberId}/authorities")
+    public String grantAuthorityToMember(@PathVariable Long memberId, ServerWebExchange exchange) {
+        exchange.getFormData()
+                .flatMap(formdata -> {
+                    String authorityIdStr = formdata.getFirst("authorityId");
+                    if (authorityIdStr == null) {
+                        return Mono.error(new IllegalArgumentException("Authority ID is missing"));
+                    }
+                    Long authorityId = Long.parseLong(authorityIdStr);
+                    // Assuming adminId is not strictly needed for now, passing null
+                    return authorizationService.grantAuthority(null, memberId, authorityId);
+                }).subscribe();
+        return "redirect:/admin/members/" + memberId;
+    }
+
+    @PostMapping("/members/{memberId}/authorities/{authorityId}/delete")
+    public String revokeAuthorityFromMember(@PathVariable Long memberId, @PathVariable Long authorityId) {
+        // Assuming adminId is not strictly needed for now, passing null
+        authorizationService.revokeAuthority(null, memberId, authorityId).subscribe();
+        return "redirect:/admin/members/" + memberId;
     }
 }
