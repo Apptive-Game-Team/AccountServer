@@ -71,4 +71,13 @@ public class MemberService {
                 }
         ).map(MemberEntity::toDomain);
     }
+
+    public Flux<Member> getSimpleMembers(long offset, int size) {
+        return memberRepository.findPage(offset, size)
+                .map(MemberEntity::toDomain);
+    }
+
+    public Mono<Long> getMemberCount() {
+        return memberRepository.count();
+    }
 }

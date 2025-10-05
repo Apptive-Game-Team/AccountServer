@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="pagination(currentPage, size, totalItems)" aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a class="page-link" th:href="@{/admin/members(page=${currentPage - 1}, size=${size})}" tabindex="-1" aria-disabled="true">Previous</a>
+        </li>
+
+        <li class="page-item" th:each="pageNumber : ${#numbers.sequence(0, (totalItems - 1) / size)}" th:classappend="${pageNumber == currentPage} ? 'active'">
+            <a class="page-link" th:href="@{/admin/members(page=${pageNumber}, size=${size})}" th:text="${pageNumber + 1}"></a>
+        </li>
+
+        <li class="page-item" th:classappend="${currentPage == (totalItems - 1) / size} ? 'disabled'">
+            <a class="page-link" th:href="@{/admin/members(page=${currentPage + 1}, size=${size})}">Next</a>
+        </li>
+    </ul>
+</nav>
+</body>
+</html>

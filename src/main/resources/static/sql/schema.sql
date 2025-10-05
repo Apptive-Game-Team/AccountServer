@@ -47,3 +47,5 @@ ALTER TABLE key_value ADD COLUMN system_id BIGINT REFERENCES system(id);
 ALTER TABLE key_value ADD CONSTRAINT uq_key_value_member_id_system_id_key UNIQUE (member_id, system_id, key);
 
 ALTER TABLE system ADD COLUMN created_by BIGINT REFERENCES member(id);
+
+ALTER TABLE member_authority ADD CONSTRAINT uq_member_authority_member_id_authority_id UNIQUE (member_id, authority_id);

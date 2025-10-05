@@ -1,7 +1,10 @@
 package com.wordonline.account.controller;
 
+import com.wordonline.account.service.MemberService;
 import com.wordonline.account.service.SystemService;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ServerWebExchange;
 import org.thymeleaf.spring6.context.webflux.IReactiveDataDriverContextVariable;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
@@ -20,6 +24,7 @@ import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 public class AdminController {
 
     private final SystemService systemService;
+    private final MemberService memberService;
 
     @GetMapping
     public String adminHome() {
@@ -57,5 +62,24 @@ public class AdminController {
                     return systemService.updateSystem(id, name);
                 }).subscribe();
         return "redirect:/admin/systems";
+    }
+
+    @GetMapping("/members")
+    public Mono<String> memberList(
+            Model model,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        var members = memberService.getSimpleMembers(page * size, size);
+
+        return memberService.getMemberCount()
+                .map(count -> {
+                    var membersIReactive = new ReactiveDataDriverContextVariable(members, size);
+                    model.addAttribute("members", membersIReactive);
+                    model.addAttribute("memberCount", count);
+                    model.addAttribute("currentPage", page);
+                    model.addAttribute("size", size);
+                    return "admin/members";
+                });
     }
 }
