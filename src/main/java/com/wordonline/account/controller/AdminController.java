@@ -1,12 +1,13 @@
 package com.wordonline.account.controller;
 
+import com.wordonline.account.domain.Authority;
 import com.wordonline.account.domain.Member;
 import com.wordonline.account.dto.AuthorityResponse;
-import com.wordonline.account.entity.Authority;
 import com.wordonline.account.service.AuthorizationService;
 import com.wordonline.account.service.MemberService;
 import com.wordonline.account.service.SystemService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Controller
 @RequestMapping("/admin")
@@ -94,17 +96,20 @@ public class AdminController {
     }
 
     @GetMapping("/authorities")
-    public String authorityList(
+    public Mono<String> authorityList(
             Model model,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        var authorities = authorizationService.getAuthorities(page * size, size);
-        IReactiveDataDriverContextVariable reactiveDataDrivenMode =
-                new ReactiveDataDriverContextVariable(authorities, 1);
-        model.addAttribute("authorities", reactiveDataDrivenMode);
-        // TODO: Add pagination support
-        return "admin/authorities";
+        return systemService.getSystems().collectList().map(systems -> {
+            var authorities = authorizationService.getAuthorities(page * size, size);
+            IReactiveDataDriverContextVariable reactiveDataDrivenMode =
+                    new ReactiveDataDriverContextVariable(authorities, 1);
+            model.addAttribute("authorities", reactiveDataDrivenMode);
+            model.addAttribute("systems", systems);
+
+            return "admin/authorities";
+        });
     }
 
     @PostMapping("/authorities")
@@ -112,7 +117,8 @@ public class AdminController {
         exchange.getFormData()
                 .flatMap(formdata -> {
                     String name = formdata.getFirst("name");
-                    return authorizationService.createAuthority(name);
+                    Long systemId = Long.parseLong(formdata.getFirst("systemId"));
+                    return authorizationService.createAuthority(systemId, name);
                 }).subscribe();
         return "redirect:/admin/authorities";
     }
@@ -159,7 +165,7 @@ public class AdminController {
                 .flatMap(formdata -> {
                     String authorityIdStr = formdata.getFirst("authorityId");
                     if (authorityIdStr == null) {
-                        return Mono.error(new IllegalArgumentException("Authority ID is missing"));
+                        return Mono.error(new IllegalArgumentException("AuthorityEntity ID is missing"));
                     }
                     Long authorityId = Long.parseLong(authorityIdStr);
                     // Assuming adminId is not strictly needed for now, passing null

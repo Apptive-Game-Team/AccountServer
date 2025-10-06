@@ -18,6 +18,9 @@
                         <!-- Authority Create Form -->
                         <form th:action="@{/admin/authorities}" method="post" class="mb-4">
                             <div class="input-group">
+                                <select name="systemId" class="form-control">
+                                    <option th:each="system : ${systems}" th:value="${system.id}" th:text="${system.name}">System</option>
+                                </select>
                                 <input type="text" name="name" class="form-control" placeholder="새 권한 이름" required>
                                 <button type="submit" class="btn btn-primary">추가</button>
                             </div>

@@ -8,19 +8,19 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Table("Authority")
+@Table("authority")
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Authority {
+public class AuthorityEntity {
 
     @Id
     private Long id;
-
+    private Long systemId;
     @Setter
     private String value;
 
-    public Authority(String value) {
-        this(null, value);
+    public AuthorityEntity(Long systemId, String value) {
+        this(null, systemId, value);
     }
 }

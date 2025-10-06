@@ -4,17 +4,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.wordonline.account.dto.AuthorityResponse;
-import com.wordonline.account.entity.Authority;
+import com.wordonline.account.entity.AuthorityEntity;
 import com.wordonline.account.entity.MemberAuthority;
 import com.wordonline.account.entity.MemberEntity;
+import com.wordonline.account.mapper.AuthorityMapper;
 import com.wordonline.account.repository.AuthorityRepository;
 import com.wordonline.account.repository.MemberAuthorityRepository;
 import com.wordonline.account.repository.MemberRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -23,6 +26,7 @@ public class AuthorizationService {
     private final MemberRepository memberRepository;
     private final MemberAuthorityRepository memberAuthorityRepository;
     private final AuthorityRepository authorityRepository;
+    private final AuthorityMapper authorityMapper;
 
     public Mono<Boolean> grantAuthority(Long adminId, Long applierId, Long authorityId) {
 
@@ -47,9 +51,10 @@ public class AuthorizationService {
                 .map(num -> num > 0);
     }
 
-    public Mono<AuthorityResponse> createAuthority(String name) {
-        Authority authority = new Authority(name);
-        return authorityRepository.save(authority)
+    public Mono<AuthorityResponse> createAuthority(Long systemId ,String name) {
+        AuthorityEntity authorityEntity = new AuthorityEntity(systemId, name);
+        return authorityRepository.save(authorityEntity)
+                .flatMap(authorityMapper::toDomain)
                 .map(AuthorityResponse::new);
     }
 
@@ -59,11 +64,14 @@ public class AuthorizationService {
                     authority.setValue(name);
                     return authorityRepository.save(authority);
                 })
+                .flatMap(authorityMapper::toDomain)
                 .map(AuthorityResponse::new);
     }
 
     public Flux<AuthorityResponse> getAuthorities(long offset, int size) {
         return authorityRepository.findPage(offset, size)
-                .map(AuthorityResponse::new);
+                .flatMap(authorityMapper::toDomain)
+                .map(AuthorityResponse::new)
+                .doOnError(e -> log.error("[ERROR]", e));
     }
 }

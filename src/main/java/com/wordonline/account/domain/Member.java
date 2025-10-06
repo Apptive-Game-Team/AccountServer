@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.wordonline.account.entity.Authority;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -22,7 +20,7 @@ public class Member {
 
     public List<String> getAuthorityStringList() {
         return authorityList.stream()
-                .map(Authority::getValue)
+                .map(Authority::getAuthority)
                 .toList();
     }
 

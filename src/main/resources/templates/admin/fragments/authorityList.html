@@ -6,6 +6,7 @@
         <thead>
         <tr>
             <th scope="col">ID</th>
+            <th scope="col">System</th>
             <th scope="col">이름</th>
             <th scope="col">관리</th>
         </tr>
@@ -14,6 +15,7 @@
         <tr th:each="authority : ${authorities}">
             <form th:action="@{/admin/authorities/{id}(id=${authority.id})}" method="post">
                 <td th:text="${authority.id}"></td>
+                <td th:text="${authority.system.name}"></td>
                 <td>
                     <input type="text" name="name" class="form-control" th:value="${authority.name}" required>
                 </td>

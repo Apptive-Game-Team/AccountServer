@@ -27,7 +27,7 @@
                             <tbody>
                             <tr th:each="auth : ${member.getAuthorityList()}">
                                 <td th:text="${auth.id}"></td>
-                                <td th:text="${auth.value}"></td>
+                                <td th:text="${auth.getAuthority()}"></td>
                                 <td>
                                     <form th:action="@{/admin/members/{memberId}/authorities/{authorityId}/delete(memberId=${member.id}, authorityId=${auth.id})}" method="post">
                                         <button type="submit" class="btn btn-sm btn-danger">삭제</button>
@@ -50,7 +50,7 @@
                                     <option value="" disabled selected>추가할 권한을 선택하세요</option>
                                     <option th:each="auth : ${availableAuthorities}"
                                             th:value="${auth.id()}"
-                                            th:text="${auth.name()}"></option>
+                                            th:text="${auth.authority()}"></option>
                                 </select>
                                 <button type="submit" class="btn btn-primary">추가</button>
                             </div>

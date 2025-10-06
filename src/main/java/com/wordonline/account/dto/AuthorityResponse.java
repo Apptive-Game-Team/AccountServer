@@ -1,13 +1,21 @@
 package com.wordonline.account.dto;
 
-import com.wordonline.account.entity.Authority;
+import com.wordonline.account.domain.Authority;
 
 public record AuthorityResponse(
         Long id,
-        String name
+        SystemResponse system,
+        String name,
+        String authority
 ) {
 
     public AuthorityResponse(Authority authority) {
-        this(authority.getId(), authority.getValue());
+        this(
+                authority.getId(),
+                new SystemResponse(authority.getSystem()),
+                authority.getName(),
+                authority.getAuthority()
+        );
     }
+
 }
