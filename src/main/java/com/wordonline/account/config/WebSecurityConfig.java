@@ -7,24 +7,27 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
-import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity.CsrfSpec;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
+import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
@@ -33,10 +36,14 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import java.net.URI;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
+@EnableReactiveMethodSecurity
 public class WebSecurityConfig {
 
     private final CookieAuthenticationFilter cookieAuthenticationFilter;
@@ -70,7 +77,26 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, ReactiveJwtDecoder jwtDecoder) {
+    public ReactiveJwtAuthenticationConverterAdapter reactiveJwtAuthenticationConverterAdapter() {
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
+            String scope = jwt.getClaimAsString("scope");
+            if (scope == null) {
+                return Collections.emptyList();
+            }
+            return Arrays.stream(scope.split(" "))
+                    .map(SimpleGrantedAuthority::new)
+                    .collect(Collectors.toList());
+        });
+        return new ReactiveJwtAuthenticationConverterAdapter(converter);
+    }
+
+    @Bean
+    SecurityWebFilterChain springSecurityFilterChain(
+            ServerHttpSecurity http,
+            ReactiveJwtDecoder jwtDecoder,
+            ReactiveJwtAuthenticationConverterAdapter jwtAuthenticationConverter
+    ) {
         http
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
@@ -100,7 +126,10 @@ public class WebSecurityConfig {
         // Add cookie filter before authentication
         http.addFilterBefore(cookieAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION);
 
-        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(jwtDecoder)));
+        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt
+                .jwtDecoder(jwtDecoder)
+                .jwtAuthenticationConverter(jwtAuthenticationConverter)
+        ));
         http.csrf(CsrfSpec::disable);
         return http.build();
     }
