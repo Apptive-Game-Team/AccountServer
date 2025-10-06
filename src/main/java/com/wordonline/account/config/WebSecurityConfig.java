@@ -7,9 +7,12 @@ import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
@@ -27,6 +30,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import java.net.URI;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
@@ -79,9 +83,18 @@ public class WebSecurityConfig {
 
                         .anyExchange().authenticated()
                 );
+
+        http.exceptionHandling(ex -> ex
+                .authenticationEntryPoint((exchange, e) -> {
+                    exchange.getResponse().setStatusCode(HttpStatus.FOUND);
+                    exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
+                    return exchange.getResponse().setComplete();
+                })
+        );
+
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        http.formLogin(formLoginSpec -> formLoginSpec.loginPage("/login"));
+        http.formLogin(ServerHttpSecurity.FormLoginSpec::disable);
         http.logout(ServerHttpSecurity.LogoutSpec::disable);
 
         // Add cookie filter before authentication
