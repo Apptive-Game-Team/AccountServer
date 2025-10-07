@@ -1,77 +1,39 @@
 package com.wordonline.account.service;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import com.wordonline.account.dto.AuthorityResponse;
-import com.wordonline.account.entity.AuthorityEntity;
-import com.wordonline.account.entity.MemberAuthority;
-import com.wordonline.account.entity.MemberEntity;
-import com.wordonline.account.mapper.AuthorityMapper;
-import com.wordonline.account.repository.AuthorityRepository;
-import com.wordonline.account.repository.MemberAuthorityRepository;
-import com.wordonline.account.repository.MemberRepository;
+import com.wordonline.account.repository.SystemRepository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-@Slf4j
-@Service
-@Transactional
+@Service("auth")
 @RequiredArgsConstructor
 public class AuthorizationService {
 
-    private final MemberRepository memberRepository;
-    private final MemberAuthorityRepository memberAuthorityRepository;
-    private final AuthorityRepository authorityRepository;
-    private final AuthorityMapper authorityMapper;
+    private final SystemRepository systemRepository;
 
-    public Mono<Boolean> grantAuthority(Long adminId, Long applierId, Long authorityId) {
-
-        // TODO - 권한 부여자, 권한 체크
-
-        Mono<MemberEntity> applier = memberRepository.findById(authorityId);
-
-        return applier.flatMap(memberEntity -> {
-            MemberAuthority memberAuthority = new MemberAuthority(applierId, authorityId);
-            return memberAuthorityRepository.save(memberAuthority);
-        }).hasElement();
+    public Mono<Boolean> checkAuthority(String authority, Mono<Long> systemIdMono, String role) {
+        return systemIdMono.flatMap(systemId -> checkAuthority(authority, systemId, role));
     }
 
-    public Mono<Boolean> revokeAuthority(Long adminId, Long applierId, Long authorityId) {
-
-        // TODO - 권한 부여자, 권한 체크
-
-        Mono<MemberEntity> applier = memberRepository.findById(authorityId);
-
-        return applier.flatMap(memberEntity ->
-                        memberAuthorityRepository.deleteByMemberIdAndAuthorityId(applierId, authorityId))
-                .map(num -> num > 0);
+    public Mono<Boolean> checkAuthority(String authority, Long systemId, String role) {
+        return Mono.zip(
+                isSystem(authority, systemId),
+                isRole(authority, role)
+                ).map(zip -> zip.getT1() && zip.getT2());
     }
 
-    public Mono<AuthorityResponse> createAuthority(Long systemId ,String name) {
-        AuthorityEntity authorityEntity = new AuthorityEntity(systemId, name);
-        return authorityRepository.save(authorityEntity)
-                .flatMap(authorityMapper::toDomain)
-                .map(AuthorityResponse::new);
+    public Mono<Boolean> isRole(String authority, String role) {
+        return Mono.just(
+                authority.split("_")[1]
+                        .equals(role.toUpperCase())
+        );
     }
 
-    public Mono<AuthorityResponse> updateAuthority(Long authorityId, String name) {
-        return authorityRepository.findById(authorityId)
-                .flatMap(authority -> {
-                    authority.setValue(name);
-                    return authorityRepository.save(authority);
-                })
-                .flatMap(authorityMapper::toDomain)
-                .map(AuthorityResponse::new);
-    }
-
-    public Flux<AuthorityResponse> getAuthorities(long offset, int size) {
-        return authorityRepository.findPage(offset, size)
-                .flatMap(authorityMapper::toDomain)
-                .map(AuthorityResponse::new)
-                .doOnError(e -> log.error("[ERROR]", e));
+    public Mono<Boolean> isSystem(String authority, Long systemId) {
+        String systemString = authority.split("_")[0];
+        return systemRepository.findById(systemId)
+                .map(system -> system.getNormalizedName().equals(systemString));
     }
 }

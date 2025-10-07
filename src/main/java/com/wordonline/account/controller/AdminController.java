@@ -3,7 +3,7 @@ package com.wordonline.account.controller;
 import com.wordonline.account.domain.Authority;
 import com.wordonline.account.domain.Member;
 import com.wordonline.account.dto.AuthorityResponse;
-import com.wordonline.account.service.AuthorizationService;
+import com.wordonline.account.service.AuthorityService;
 import com.wordonline.account.service.MemberService;
 import com.wordonline.account.service.SystemService;
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,7 @@ public class AdminController {
 
     private final SystemService systemService;
     private final MemberService memberService;
-    private final AuthorizationService authorizationService;
+    private final AuthorityService authorityService;
 
     @GetMapping
     public String adminHome() {
@@ -102,7 +102,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return systemService.getSystems().collectList().map(systems -> {
-            var authorities = authorizationService.getAuthorities(page * size, size);
+            var authorities = authorityService.getAuthorities(page * size, size);
             IReactiveDataDriverContextVariable reactiveDataDrivenMode =
                     new ReactiveDataDriverContextVariable(authorities, 1);
             model.addAttribute("authorities", reactiveDataDrivenMode);
@@ -118,7 +118,7 @@ public class AdminController {
                 .flatMap(formdata -> {
                     String name = formdata.getFirst("name");
                     Long systemId = Long.parseLong(formdata.getFirst("systemId"));
-                    return authorizationService.createAuthority(systemId, name);
+                    return authorityService.createAuthority(systemId, name);
                 }).subscribe();
         return "redirect:/admin/authorities";
     }
@@ -130,7 +130,7 @@ public class AdminController {
         exchange.getFormData()
                 .flatMap(formdata -> {
                     String name = formdata.getFirst("name");
-                    return authorizationService.updateAuthority(id, name);
+                    return authorityService.updateAuthority(id, name);
                 }).subscribe();
         return "redirect:/admin/authorities";
     }
@@ -138,7 +138,7 @@ public class AdminController {
     @GetMapping("/members/{id}")
     public Mono<String> memberDetails(@PathVariable Long id, Model model) {
         Mono<Member> memberMono = memberService.getMember(id);
-        Flux<AuthorityResponse> allAuthoritiesFlux = authorizationService.getAuthorities(0, 1000); // Assuming max 1000 authorities
+        Flux<AuthorityResponse> allAuthoritiesFlux = authorityService.getAuthorities(0, 1000); // Assuming max 1000 authorities
 
         return memberMono.zipWith(allAuthoritiesFlux.collectList())
                 .map(tuple -> {
@@ -169,7 +169,7 @@ public class AdminController {
                     }
                     Long authorityId = Long.parseLong(authorityIdStr);
                     // Assuming adminId is not strictly needed for now, passing null
-                    return authorizationService.grantAuthority(null, memberId, authorityId);
+                    return authorityService.grantAuthority(null, memberId, authorityId);
                 }).subscribe();
         return "redirect:/admin/members/" + memberId;
     }
@@ -177,7 +177,7 @@ public class AdminController {
     @PostMapping("/members/{memberId}/authorities/{authorityId}/delete")
     public String revokeAuthorityFromMember(@PathVariable Long memberId, @PathVariable Long authorityId) {
         // Assuming adminId is not strictly needed for now, passing null
-        authorizationService.revokeAuthority(null, memberId, authorityId).subscribe();
+        authorityService.revokeAuthority(null, memberId, authorityId).subscribe();
         return "redirect:/admin/members/" + memberId;
     }
 }

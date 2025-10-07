@@ -18,11 +18,12 @@ public class Authority {
         this(authorityEntity.getId(), system, authorityEntity.getValue());
     }
 
+    public Authority(String name, System system) {
+        this(null, system, name);
+    }
+
     public String getAuthority() {
-        String systemName = system.getName()
-                .replace("_", "")
-                .replace("-", "")
-                .toUpperCase();
+        String systemName = system.getNormalizedName();
         return String.format("%s_%s", systemName, name);
     }
 }
