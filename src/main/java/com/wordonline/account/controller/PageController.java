@@ -8,9 +8,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.server.ServerWebExchange;
+
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
+@Slf4j
 @Controller
 public class PageController {
 
@@ -41,7 +44,10 @@ public class PageController {
                     exchange.getResponse().addCookie(cookie);
                     return "redirect:/admin";
                 })
-                .onErrorResume(e -> Mono.just("redirect:/login?error"));
+                .onErrorResume(e -> {
+                    log.error("[LOGIN FAIL]", e);
+                    return Mono.just("redirect:/login?error");
+                });
         });
     }
 }

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Page - Members</title>
+</head>
+<body>
+<section>
+    <div th:replace="~{admin/fragments/nav :: admin-nav}"></div>
+    <div class="container mt-4">
+        <h1>Member List</h1>
+        <div th:replace="~{admin/fragments/memberList :: member-list(members=${members})}"></div>
+        <div th:replace="~{admin/fragments/pagination :: pagination(currentPage=${currentPage}, size=${size}, totalItems=${memberCount})}"></div>
+    </div>
+</section>
+</body>
+</html>

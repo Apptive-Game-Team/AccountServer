@@ -1,9 +1,7 @@
 package com.wordonline.account.entity;
 
-import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,6 +20,13 @@ public class System {
     @Setter
     private String name;
     private Long createdBy;
+
+    public String getNormalizedName() {
+        return name
+                .replace("_", "")
+                .replace("-", "")
+                .toUpperCase();
+    }
 
     public System(Long principalId, String name, Long createdBy) {
         this(null, principalId, name, createdBy);

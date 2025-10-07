@@ -2,7 +2,6 @@ package com.wordonline.account.domain;
 
 import java.util.List;
 
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.AllArgsConstructor;
@@ -17,7 +16,14 @@ public class Member {
     private String name;
     private String email;
     private String passwordHash;
-    private List<String> authorityStringList;
+    private List<Authority> authorityList;
+
+    public List<String> getAuthorityStringList() {
+        return authorityList.stream()
+                .map(Authority::getAuthority)
+                .toList();
+    }
+
 
     public boolean validatePassword(String passwordPlain, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(passwordPlain, passwordHash);
@@ -35,6 +41,6 @@ public class Member {
     }
 
     public Member(Member member) {
-        this(member.id, member.principalId, member.name, member.email, member.passwordHash, member.authorityStringList);
+        this(member.id, member.principalId, member.name, member.email, member.passwordHash, member.getAuthorityList());
     }
 }

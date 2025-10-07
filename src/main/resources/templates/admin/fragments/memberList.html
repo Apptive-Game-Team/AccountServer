@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="member-list" class="container mt-4">
+    <table class="table table-hover">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="member : ${members}">
+            <td th:text="${member.id}"></td>
+            <td>
+                <a th:href="@{/admin/members/{id}(id=${member.id})}" th:text="${member.name}"></a>
+            </td>
+            <td th:text="${member.email}"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

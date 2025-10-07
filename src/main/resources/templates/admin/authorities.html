@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>관리자 | 권한 관리</title>
+</head>
+<body>
+<section>
+    <div th:replace="~{admin/fragments/nav :: admin-nav}"></div>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="card shadow-lg border-0 rounded-lg mt-5">
+                    <div class="card-header">
+                        <h3 class="text-center font-weight-light my-4">권한 관리</h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- Authority Create Form -->
+                        <form th:action="@{/admin/authorities}" method="post" class="mb-4">
+                            <div class="input-group">
+                                <select name="systemId" class="form-control">
+                                    <option th:each="system : ${systems}" th:value="${system.id}" th:text="${system.name}">System</option>
+                                </select>
+                                <input type="text" name="name" class="form-control" placeholder="새 권한 이름" required>
+                                <button type="submit" class="btn btn-primary">추가</button>
+                            </div>
+                        </form>
+
+                        <!-- Authority List -->
+                        <div id="authority-list-fragment" th:include="~{admin/fragments/authorityList :: authorityListFragment}">
+                            <!-- Authority list will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

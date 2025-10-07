@@ -14,10 +14,10 @@
                         <h1>Login</h1>
                     </div>
                     <div class="card-body">
-                        <!-- Display error message if login fails -->
-                        <div th:if="${param.error}" class="alert alert-danger">
-                            <p>Invalid email or password.</p>
-                        </div>
+<!--                        &lt;!&ndash; Display error message if login fails &ndash;&gt;-->
+<!--                        <div th:if="${param.error != null}" class="alert alert-danger">-->
+<!--                            <p>Invalid email or password.</p>-->
+<!--                        </div>-->
                         <form th:action="@{/login}" method="post">
                             <div class="mb-3">
                                 <label for="email" class="form-label">Email:</label>

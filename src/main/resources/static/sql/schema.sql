@@ -47,3 +47,13 @@ ALTER TABLE key_value ADD COLUMN system_id BIGINT REFERENCES system(id);
 ALTER TABLE key_value ADD CONSTRAINT uq_key_value_member_id_system_id_key UNIQUE (member_id, system_id, key);
 
 ALTER TABLE system ADD COLUMN created_by BIGINT REFERENCES member(id);
+
+ALTER TABLE member_authority ADD CONSTRAINT uq_member_authority_member_id_authority_id UNIQUE (member_id, authority_id);
+
+ALTER TABLE authority ADD COLUMN systemId BIGINT REFERENCES system(id);
+ALTER TABLE authority DROP COLUMN systemId;
+ALTER TABLE authority ADD COLUMN system_id BIGINT REFERENCES system(id);
+
+ALTER TABLE authority DROP COLUMN value;
+ALTER TABLE authority ADD COLUMN value VARCHAR(31) NOT NULL ;
+ALTER TABLE authority ADD CONSTRAINT uq_authority_value_system_id UNIQUE (value, system_id);

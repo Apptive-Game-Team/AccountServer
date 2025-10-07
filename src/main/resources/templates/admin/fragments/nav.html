@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<body>
 <nav th:fragment="admin-nav" class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
         <a class="navbar-brand" href="/admin">Admin</a>
@@ -18,11 +15,15 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/admin/systems}">Systems</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/members}">Members</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/admin/authorities}">Authorities</a>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
-</body>
-</html>
 </body>
 </html>

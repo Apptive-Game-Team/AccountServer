@@ -17,7 +17,6 @@ import com.wordonline.account.service.KeyValueService;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
-@PreAuthorize("isAuthenticated()")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
