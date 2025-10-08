@@ -101,7 +101,7 @@ public class WebSecurityConfig {
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(
                                 "/api/members/guest",
-                                "/api/members/me",
+                                "/api/members/*",
                                 "/api/members",
                                 "/api/members/login",
                                 "/login",
