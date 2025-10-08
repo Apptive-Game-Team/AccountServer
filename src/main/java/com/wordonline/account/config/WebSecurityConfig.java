@@ -81,7 +81,7 @@ public class WebSecurityConfig {
         JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
             String scope = jwt.getClaimAsString("scope");
-            if (scope == null) {
+            if (scope == null || scope.trim().isEmpty()) {
                 return Collections.emptyList();
             }
             return Arrays.stream(scope.split(" "))
