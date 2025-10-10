@@ -2,10 +2,11 @@ package com.wordonline.account.service;
 
 import java.util.UUID;
 
-import org.springframework.security.authorization.AuthorizationDeniedException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.wordonline.account.config.JwtProvider;
 import com.wordonline.account.domain.Member;
@@ -32,13 +33,14 @@ public class AuthenticationService {
         return memberService.getMember(joinRequest.email())
                 .hasElement()
                 .flatMap(exists ->
-                        {
-                            if (exists) {
-                                return Mono.error(new IllegalArgumentException(EMAIL_REDUNDANT));
-                            }
-                            return memberService.createMember(joinRequest)
-                                    .flatMap(id -> login(new LoginRequest(joinRequest)));
-                        });
+                {
+                    if (exists) {
+                        return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                EMAIL_REDUNDANT));
+                    }
+                    return memberService.createMember(joinRequest)
+                            .flatMap(id -> login(new LoginRequest(joinRequest)));
+                });
     }
 
     public Mono<AuthResponse> login(LoginRequest memberRequest) {
@@ -47,11 +49,14 @@ public class AuthenticationService {
 
         return memberMono
                 .onErrorMap(
-                        throwable -> new AuthorizationDeniedException(LOGIN_FAIL_MESSAGE)
+                        throwable -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                                LOGIN_FAIL_MESSAGE)
                 )
                 .handle((member, sink) -> {
-                    if (member == null || !member.validatePassword(memberRequest.password(), passwordEncoder)) {
-                        sink.error(new AuthorizationDeniedException(LOGIN_FAIL_MESSAGE));
+                    if (member == null || !member.validatePassword(memberRequest.password(),
+                            passwordEncoder)) {
+                        sink.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                                LOGIN_FAIL_MESSAGE));
                         return;
                     }
                     sink.next(new AuthResponse(jwtProvider.getJwt(member)));
@@ -64,8 +69,10 @@ public class AuthenticationService {
     }
 
     public JoinRequest getRandomJoinRequest(String name) {
-        String uniqueEmail = "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
-        String guestName = name == null || name.isBlank() || name.isEmpty() ? "guest_" + System.currentTimeMillis() : name;
+        String uniqueEmail =
+                "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
+        String guestName = name == null || name.isBlank() || name.isEmpty() ? "guest_"
+                + System.currentTimeMillis() : name;
         String password = "pw_" + System.currentTimeMillis();
         return new JoinRequest(uniqueEmail, guestName, password);
     }

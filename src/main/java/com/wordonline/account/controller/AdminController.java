@@ -1,16 +1,10 @@
 package com.wordonline.account.controller;
 
-import com.wordonline.account.domain.Authority;
-import com.wordonline.account.domain.Member;
-import com.wordonline.account.dto.AuthorityResponse;
-import com.wordonline.account.service.AuthorityService;
-import com.wordonline.account.service.MemberService;
-import com.wordonline.account.service.SystemService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
@@ -20,13 +14,22 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import org.thymeleaf.spring6.context.webflux.IReactiveDataDriverContextVariable;
 import org.thymeleaf.spring6.context.webflux.ReactiveDataDriverContextVariable;
 
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.wordonline.account.domain.Authority;
+import com.wordonline.account.domain.Member;
+import com.wordonline.account.dto.AuthorityResponse;
+import com.wordonline.account.service.AuthorityService;
+import com.wordonline.account.service.MemberService;
+import com.wordonline.account.service.SystemService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -82,7 +85,7 @@ public class AdminController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
-        var members = memberService.getSimpleMembers(page * size, size);
+        var members = memberService.getSimpleMembers((long) page * size, size);
 
         return memberService.getMemberCount()
                 .map(count -> {
@@ -102,7 +105,7 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size
     ) {
         return systemService.getSystems().collectList().map(systems -> {
-            var authorities = authorityService.getAuthorities(page * size, size);
+            var authorities = authorityService.getAuthorities((long) page * size, size);
             IReactiveDataDriverContextVariable reactiveDataDrivenMode =
                     new ReactiveDataDriverContextVariable(authorities, 1);
             model.addAttribute("authorities", reactiveDataDrivenMode);
@@ -138,7 +141,8 @@ public class AdminController {
     @GetMapping("/members/{id}")
     public Mono<String> memberDetails(@PathVariable Long id, Model model) {
         Mono<Member> memberMono = memberService.getMember(id);
-        Flux<AuthorityResponse> allAuthoritiesFlux = authorityService.getAuthorities(0, 1000); // Assuming max 1000 authorities
+        Flux<AuthorityResponse> allAuthoritiesFlux = authorityService.getAuthorities(0,
+                1000); // Assuming max 1000 authorities
 
         return memberMono.zipWith(allAuthoritiesFlux.collectList())
                 .map(tuple -> {
@@ -165,7 +169,9 @@ public class AdminController {
                 .flatMap(formdata -> {
                     String authorityIdStr = formdata.getFirst("authorityId");
                     if (authorityIdStr == null) {
-                        return Mono.error(new IllegalArgumentException("AuthorityEntity ID is missing"));
+                        return Mono.error(new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "AuthorityEntity ID is missing"));
                     }
                     Long authorityId = Long.parseLong(authorityIdStr);
                     // Assuming adminId is not strictly needed for now, passing null
@@ -175,7 +181,8 @@ public class AdminController {
     }
 
     @PostMapping("/members/{memberId}/authorities/{authorityId}/delete")
-    public String revokeAuthorityFromMember(@PathVariable Long memberId, @PathVariable Long authorityId) {
+    public String revokeAuthorityFromMember(@PathVariable Long memberId,
+            @PathVariable Long authorityId) {
         // Assuming adminId is not strictly needed for now, passing null
         authorityService.revokeAuthority(null, memberId, authorityId).subscribe();
         return "redirect:/admin/members/" + memberId;
