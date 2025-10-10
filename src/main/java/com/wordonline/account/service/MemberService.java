@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.wordonline.account.domain.Authority;
 import com.wordonline.account.domain.Member;
 import com.wordonline.account.dto.JoinRequest;
+import com.wordonline.account.dto.MemberResponse;
 import com.wordonline.account.entity.AuthorityEntity;
 import com.wordonline.account.entity.MemberAuthority;
 import com.wordonline.account.entity.MemberEntity;
@@ -87,5 +88,9 @@ public class MemberService {
 
     public Mono<Long> getMemberCount() {
         return memberRepository.count();
+    }
+
+    public Mono<Void> deleteMember(long memberId) {
+        return memberRepository.deleteById(memberId);
     }
 }
