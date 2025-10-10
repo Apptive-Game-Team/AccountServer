@@ -39,10 +39,10 @@ public class MemberController {
                 .map(MemberResponse::new);
     }
 
-    @DeleteMapping("/{memberId}")
+    @DeleteMapping("/me")
     public Mono<Void> deleteMember(
-            @PathVariable Long memberId
+            @AuthenticationPrincipal Jwt principal
     ) {
-        return memberService.deleteMember(memberId);
+        return memberService.deleteMember(principal.getClaim("memberId"));
     }
 }
