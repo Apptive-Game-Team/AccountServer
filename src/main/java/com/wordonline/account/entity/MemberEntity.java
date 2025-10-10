@@ -2,7 +2,6 @@ package com.wordonline.account.entity;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
@@ -13,7 +12,6 @@ import com.wordonline.account.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import reactor.core.publisher.Mono;
 
 @Table("member")
 @Getter
@@ -29,7 +27,8 @@ public class MemberEntity {
     private String passwordHash;
 
     public MemberEntity(Member member) {
-        this(member.getId(), member.getPrincipalId(), member.getName(), member.getEmail(), member.getPasswordHash());
+        this(member.getId(), member.getPrincipalId(), member.getName(), member.getEmail(),
+                member.getPasswordHash());
     }
 
     public Member toDomain() {

@@ -9,7 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.wordonline.account.domain.Authority;
 import com.wordonline.account.domain.Member;
 import com.wordonline.account.dto.JoinRequest;
-import com.wordonline.account.dto.MemberResponse;
 import com.wordonline.account.entity.AuthorityEntity;
 import com.wordonline.account.entity.MemberAuthority;
 import com.wordonline.account.entity.MemberEntity;
@@ -48,10 +47,12 @@ public class MemberService {
 
     private Mono<Member> toMember(Mono<MemberEntity> memberEntityMono) {
         Flux<MemberAuthority> memberAuthorityFlux = memberEntityMono
-                .flatMapMany(memberEntity -> memberAuthorityRepository.findAllByMemberId(memberEntity.getId()));
+                .flatMapMany(memberEntity -> memberAuthorityRepository.findAllByMemberId(
+                        memberEntity.getId()));
 
         Flux<AuthorityEntity> authorityFlux = memberAuthorityFlux
-                .flatMap(memberAuthority -> authorityRepository.findById(memberAuthority.getAuthorityId()));
+                .flatMap(memberAuthority -> authorityRepository.findById(
+                        memberAuthority.getAuthorityId()));
 
         return Mono.zip(memberEntityMono, authorityFlux.collectList())
                 .flatMap(tuple -> {
@@ -69,16 +70,16 @@ public class MemberService {
     public Mono<Member> createMember(JoinRequest joinRequest) {
         return principalRepository.save(new Principal())
                 .flatMap(
-                principal -> {
-                    Member member = new Member(
-                            principal.getId(),
-                            joinRequest.name(),
-                            joinRequest.email(),
-                            passwordEncoder.encode(joinRequest.password())
-                    );
-                    return memberRepository.save(new MemberEntity(member));
-                }
-        ).map(MemberEntity::toDomain);
+                        principal -> {
+                            Member member = new Member(
+                                    principal.getId(),
+                                    joinRequest.name(),
+                                    joinRequest.email(),
+                                    passwordEncoder.encode(joinRequest.password())
+                            );
+                            return memberRepository.save(new MemberEntity(member));
+                        }
+                ).map(MemberEntity::toDomain);
     }
 
     public Flux<Member> getSimpleMembers(long offset, int size) {

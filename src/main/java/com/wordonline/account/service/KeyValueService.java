@@ -21,14 +21,17 @@ public class KeyValueService {
 
     public Mono<ValueResponse> getValue(Long memberId, String systemName, String key) {
         return systemRepository.findByName(systemName)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("System not found: " + systemName)))
+                .switchIfEmpty(
+                        Mono.error(new IllegalArgumentException("System not found: " + systemName)))
                 .flatMap(system -> getValue(memberId, system.getId(), key))
                 .map(ValueResponse::new);
     }
 
-    public Mono<ValueResponse> setValue(Long memberId, String systemName, String key, String value) {
+    public Mono<ValueResponse> setValue(Long memberId, String systemName, String key,
+            String value) {
         return systemRepository.findByName(systemName)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("System not found: " + systemName)))
+                .switchIfEmpty(
+                        Mono.error(new IllegalArgumentException("System not found: " + systemName)))
                 .flatMap(system -> setValue(memberId, system.getId(), key, value))
                 .map(ValueResponse::new);
     }
@@ -39,9 +42,9 @@ public class KeyValueService {
 
         return keyValueRepository.findByMemberIdAndSystemIdAndKey(memberId, systemId, key)
                 .switchIfEmpty(Mono.error(new IllegalArgumentException(
-                        String.format(
-                                "Key-Value not found memberId: %d, systemId: %d, key: %s",
-                                memberId, systemId, key))
+                                String.format(
+                                        "Key-Value not found memberId: %d, systemId: %d, key: %s",
+                                        memberId, systemId, key))
                         )
                 )
                 .map(KeyValue::getValue);
@@ -56,7 +59,8 @@ public class KeyValueService {
                     existingKeyValue.setValue(value);
                     return keyValueRepository.save(existingKeyValue);
                 })
-                .switchIfEmpty(keyValueRepository.save(new KeyValue(memberId, systemId, key, value)))
+                .switchIfEmpty(
+                        keyValueRepository.save(new KeyValue(memberId, systemId, key, value)))
                 .map(KeyValue::getValue);
     }
 }

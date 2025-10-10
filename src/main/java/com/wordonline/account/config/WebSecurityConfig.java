@@ -1,12 +1,11 @@
 package com.wordonline.account.config;
 
-import com.nimbusds.jose.jwk.JWK;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
-import lombok.RequiredArgsConstructor;
+import java.net.URI;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -33,12 +32,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import java.net.URI;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.stream.Collectors;
+import com.nimbusds.jose.jwk.JWK;
+import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.RSAKey;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.SecurityContext;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -99,17 +100,17 @@ public class WebSecurityConfig {
     ) {
         http
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers(
-                                "/api/members/guest",
-                                "/api/members/*",
-                                "/api/members",
-                                "/api/members/login",
-                                "/login",
-                                "/join").permitAll()
+                                .pathMatchers(
+                                        "/api/members/guest",
+                                        "/api/members/*",
+                                        "/api/members",
+                                        "/api/members/login",
+                                        "/login",
+                                        "/join").permitAll()
 //                        .pathMatchers("/admin/**").hasRole("ADMIN")
 //                        .pathMatchers("/my-page/**").hasAuthority("ROLE_USER")
 
-                        .anyExchange().authenticated()
+                                .anyExchange().authenticated()
                 );
 
         http.exceptionHandling(ex -> ex

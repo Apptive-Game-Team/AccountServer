@@ -1,9 +1,9 @@
 package com.wordonline.account.repository;
 
-import com.wordonline.account.entity.AuthorityEntity;
-
 import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.r2dbc.repository.R2dbcRepository;
+
+import com.wordonline.account.entity.AuthorityEntity;
 
 import reactor.core.publisher.Flux;
 

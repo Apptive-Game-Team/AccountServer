@@ -41,6 +41,7 @@ public class Member {
     }
 
     public Member(Member member) {
-        this(member.id, member.principalId, member.name, member.email, member.passwordHash, member.getAuthorityList());
+        this(member.id, member.principalId, member.name, member.email, member.passwordHash,
+                member.getAuthorityList());
     }
 }

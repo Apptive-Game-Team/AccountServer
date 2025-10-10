@@ -1,8 +1,5 @@
 package com.wordonline.account.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,8 +18,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(WebExchangeBindException.class)
     public Mono<ResponseEntity<String>> handleValidationExceptions(WebExchangeBindException ex) {
-        String message = String.join(" | ", ex.getFieldErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage
-        ).toList());
+        String message = String.join(" | ",
+                ex.getFieldErrors().stream().map(DefaultMessageSourceResolvable::getDefaultMessage
+                ).toList());
         return Mono.just(ResponseEntity.badRequest().body(message));
     }
 
@@ -36,7 +34,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<String> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
+    public ResponseEntity<String> handleAuthorizationDeniedException(
+            AuthorizationDeniedException e) {
         log.trace(e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body("Unauthorized");

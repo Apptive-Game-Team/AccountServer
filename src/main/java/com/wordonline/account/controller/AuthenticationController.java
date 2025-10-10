@@ -2,7 +2,6 @@ package com.wordonline.account.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +41,7 @@ public class AuthenticationController {
 
     @PostMapping("/members")
     public Mono<AuthResponse> createMember(
-        @Validated @RequestBody JoinRequest joinRequest
+            @Validated @RequestBody JoinRequest joinRequest
     ) {
         return authenticationService.join(joinRequest);
     }
@@ -59,6 +58,7 @@ public class AuthenticationController {
             @AuthenticationPrincipal Jwt principal
     ) {
         Long memberId = principal.getClaim("memberId");
-        return Mono.just(String.format("memberId: %d, scope: %s", memberId, principal.getClaim("scope")));
+        return Mono.just(
+                String.format("memberId: %d, scope: %s", memberId, principal.getClaim("scope")));
     }
 }

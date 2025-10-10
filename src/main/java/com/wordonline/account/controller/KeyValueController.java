@@ -1,6 +1,5 @@
 package com.wordonline.account.controller;
 
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,7 +48,8 @@ public class KeyValueController {
             @PathVariable String key,
             @RequestBody ValueRequest valueRequest
     ) {
-        return keyValueService.setValue(principal.getClaim("memberId"), systemName, key, valueRequest.value());
+        return keyValueService.setValue(principal.getClaim("memberId"), systemName, key,
+                valueRequest.value());
     }
 
 }

@@ -21,7 +21,7 @@ public class AuthorizationService {
         return Mono.zip(
                 isSystem(authority, systemId),
                 isRole(authority, role)
-                ).map(zip -> zip.getT1() && zip.getT2());
+        ).map(zip -> zip.getT1() && zip.getT2());
     }
 
     public Mono<Boolean> isRole(String authority, String role) {

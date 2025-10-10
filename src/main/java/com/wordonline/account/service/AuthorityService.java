@@ -3,7 +3,6 @@ package com.wordonline.account.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.wordonline.account.domain.Authority;
 import com.wordonline.account.dto.AuthorityResponse;
 import com.wordonline.account.entity.AuthorityEntity;
 import com.wordonline.account.entity.MemberAuthority;
@@ -53,7 +52,7 @@ public class AuthorityService {
                 .map(num -> num > 0);
     }
 
-    public Mono<AuthorityResponse> createAuthority(Long systemId ,String name) {
+    public Mono<AuthorityResponse> createAuthority(Long systemId, String name) {
 
         // TODO - 권한 부여자, 권한 체크
 

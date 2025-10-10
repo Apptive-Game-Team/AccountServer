@@ -10,5 +10,6 @@ import reactor.core.publisher.Mono;
 public interface MemberAuthorityRepository extends R2dbcRepository<MemberAuthority, Long> {
 
     Flux<MemberAuthority> findAllByMemberId(Long memberId);
+
     Mono<Long> deleteByMemberIdAndAuthorityId(Long memberId, Long authorityId);
 }
