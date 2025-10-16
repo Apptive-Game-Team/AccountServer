@@ -13,6 +13,7 @@ import com.wordonline.account.domain.Member;
 import com.wordonline.account.dto.AuthResponse;
 import com.wordonline.account.dto.JoinRequest;
 import com.wordonline.account.dto.LoginRequest;
+import com.wordonline.account.util.NicknameGenerator;
 
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
@@ -28,6 +29,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
+    private final NicknameGenerator nicknameGenerator;
 
     public Mono<AuthResponse> join(JoinRequest joinRequest) {
         return memberService.getMember(joinRequest.email())
@@ -71,8 +73,7 @@ public class AuthenticationService {
     public JoinRequest getRandomJoinRequest(String name) {
         String uniqueEmail =
                 "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
-        String guestName = name == null || name.isBlank() || name.isEmpty() ? "guest_"
-                + System.currentTimeMillis() : name;
+        String guestName = (name == null || name.isBlank() || name.isEmpty()) ? nicknameGenerator.generate() : name;
         String password = "pw_" + System.currentTimeMillis();
         return new JoinRequest(uniqueEmail, guestName, password);
     }
