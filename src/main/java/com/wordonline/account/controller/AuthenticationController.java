@@ -1,14 +1,16 @@
 package com.wordonline.account.controller;
 
+import java.util.Locale;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.wordonline.account.dto.AuthResponse;
 import com.wordonline.account.dto.GuestRequest;
@@ -31,11 +33,13 @@ public class AuthenticationController {
     @PostMapping("/members/guest")
     public Mono<AuthResponse> createGuestMember(
             @RequestBody(required = false) GuestRequest guestRequest,
-            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage
+            ServerWebExchange exchange
     ) {
         String name = (guestRequest != null) ? guestRequest.name() : null;
-        log.info("[GUEST] create guest name: {}, locale: {}", name, acceptLanguage);
-        return authenticationService.joinGuest(name, acceptLanguage);
+        Locale locale = exchange.getLocaleContext().getLocale();
+        String localeString = (locale != null) ? locale.toLanguageTag() : null;
+        log.info("[GUEST] create guest name: {}, locale: {}", name, localeString);
+        return authenticationService.joinGuest(name, localeString);
     }
 
     @PostMapping("/members")
