@@ -1,7 +1,6 @@
 package com.wordonline.account.util;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 import org.springframework.stereotype.Service;

@@ -6,6 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,14 +30,12 @@ public class AuthenticationController {
 
     @PostMapping("/members/guest")
     public Mono<AuthResponse> createGuestMember(
-            @RequestBody(required = false) GuestRequest guestRequest
+            @RequestBody(required = false) GuestRequest guestRequest,
+            @RequestHeader(value = "Accept-Language", required = false) String acceptLanguage
     ) {
-        if (guestRequest == null) {
-            return authenticationService.joinGuest(null, null);
-        }
-
-        log.info("[GUEST] create guest name: {}, locale: {}", guestRequest.name(), guestRequest.locale());
-        return authenticationService.joinGuest(guestRequest.name(), guestRequest.locale());
+        String name = (guestRequest != null) ? guestRequest.name() : null;
+        log.info("[GUEST] create guest name: {}, locale: {}", name, acceptLanguage);
+        return authenticationService.joinGuest(name, acceptLanguage);
     }
 
     @PostMapping("/members")
