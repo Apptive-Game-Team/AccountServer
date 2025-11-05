@@ -65,15 +65,17 @@ public class AuthenticationService {
                 });
     }
 
-    public Mono<AuthResponse> joinGuest(String name) {
-        JoinRequest joinRequest = getRandomJoinRequest(name);
+    public Mono<AuthResponse> joinGuest(String name, String locale) {
+        JoinRequest joinRequest = getRandomJoinRequest(name, locale);
         return join(joinRequest);
     }
 
-    public JoinRequest getRandomJoinRequest(String name) {
+    public JoinRequest getRandomJoinRequest(String name, String locale) {
         String uniqueEmail =
                 "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
-        String guestName = (name == null || name.isBlank() || name.isEmpty()) ? nicknameGenerator.generate() : name;
+        String guestName = (name == null || name.isBlank() || name.isEmpty()) 
+                ? nicknameGenerator.generate(locale) 
+                : name;
         String password = "pw_" + System.currentTimeMillis();
         return new JoinRequest(uniqueEmail, guestName, password);
     }

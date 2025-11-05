@@ -32,11 +32,11 @@ public class AuthenticationController {
             @RequestBody(required = false) GuestRequest guestRequest
     ) {
         if (guestRequest == null) {
-            return authenticationService.joinGuest(null);
+            return authenticationService.joinGuest(null, null);
         }
 
-        log.info("[GUEST] create guest name: {}", guestRequest.name());
-        return authenticationService.joinGuest(guestRequest.name());
+        log.info("[GUEST] create guest name: {}, locale: {}", guestRequest.name(), guestRequest.locale());
+        return authenticationService.joinGuest(guestRequest.name(), guestRequest.locale());
     }
 
     @PostMapping("/members")
