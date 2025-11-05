@@ -1,7 +1,11 @@
 package com.wordonline.account.service;
 
+import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.context.i18n.LocaleContext;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -66,15 +70,27 @@ public class AuthenticationService {
     }
 
     public Mono<AuthResponse> joinGuest(String name) {
-        JoinRequest joinRequest = getRandomJoinRequest(name);
-        return join(joinRequest);
+        return getRandomJoinRequest(name)
+                .flatMap(this::join);
     }
 
-    public JoinRequest getRandomJoinRequest(String name) {
+    public Mono<JoinRequest> getRandomJoinRequest(String name) {
         String uniqueEmail =
                 "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
-        String guestName = (name == null || name.isBlank() || name.isEmpty()) ? nicknameGenerator.generate() : name;
         String password = "pw_" + System.currentTimeMillis();
-        return new JoinRequest(uniqueEmail, guestName, password);
+        if (name == null || name.isBlank() ) {
+            return Mono.deferContextual(ctx -> {
+                        LocaleContext localeContext = ctx.get(LocaleContext.class);
+                        String generatedName = nicknameGenerator.generate(getLocaleString(localeContext));
+                        return Mono.just(new JoinRequest(uniqueEmail, generatedName, password));
+                    }
+            );
+        }
+        return Mono.just(new JoinRequest(uniqueEmail, name, password));
+    }
+
+    private String getLocaleString(LocaleContext localeContext) {
+        Locale locale = localeContext.getLocale();
+        return Objects.requireNonNullElse(locale, Locale.KOREAN).getLanguage();
     }
 }
