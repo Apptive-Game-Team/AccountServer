@@ -36,10 +36,7 @@ public class AuthenticationController {
             ServerWebExchange exchange
     ) {
         String name = (guestRequest != null) ? guestRequest.name() : null;
-        Locale locale = exchange.getLocaleContext().getLocale();
-        String localeString = (locale != null) ? locale.toLanguageTag() : null;
-        log.info("[GUEST] create guest name: {}, locale: {}", name, localeString);
-        return authenticationService.joinGuest(name, localeString);
+        return authenticationService.joinGuest(name);
     }
 
     @PostMapping("/members")
