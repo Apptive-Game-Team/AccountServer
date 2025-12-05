@@ -1,5 +1,7 @@
 package com.wordonline.account.controller;
 
+import java.util.Locale;
+
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.wordonline.account.dto.AuthResponse;
 import com.wordonline.account.dto.GuestRequest;
@@ -29,14 +32,11 @@ public class AuthenticationController {
 
     @PostMapping("/members/guest")
     public Mono<AuthResponse> createGuestMember(
-            @RequestBody(required = false) GuestRequest guestRequest
+            @RequestBody(required = false) GuestRequest guestRequest,
+            ServerWebExchange exchange
     ) {
-        if (guestRequest == null) {
-            return authenticationService.joinGuest(null);
-        }
-
-        log.info("[GUEST] create guest name: {}", guestRequest.name());
-        return authenticationService.joinGuest(guestRequest.name());
+        String name = (guestRequest != null) ? guestRequest.name() : null;
+        return authenticationService.joinGuest(name);
     }
 
     @PostMapping("/members")
