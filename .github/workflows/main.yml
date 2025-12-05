@@ -2,7 +2,8 @@ name: Hybrid Deploy Strategy
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   # 1. 먼저 내 서버(Self-hosted)에서 시도
