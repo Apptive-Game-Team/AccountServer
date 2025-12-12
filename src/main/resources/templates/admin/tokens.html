@@ -27,7 +27,7 @@
                             <option value="1440">24 hours (1 day)</option>
                             <option value="10080">1 week</option>
                             <option value="43200">30 days</option>
-                            <option value="infinite">Infinite (Never expires)</option>
+                            <option value="null">Infinite (Never expires)</option>
                         </select>
                         <div class="form-text">Select how long the token should be valid</div>
                     </div>
@@ -70,18 +70,26 @@
     <script>
         document.getElementById('tokenForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            
+
+            const selectElement = document.getElementById('authorityIds');
+
+            // [중요] 선택된 값들을 배열로 변환하는 로직
+            const selectedValues = Array.from(selectElement.selectedOptions).map(option => option.value);
+
+            const payload = {
+              expiryMinutes: document.getElementById('expiryMinutes').value,
+              authorityIds: selectedValues
+            };
+
+            console.log(selectedValues)
             try {
-                const response = await fetch('/admin/tokens', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                if (!response.ok) {
-                    throw new Error('Failed to generate token');
-                }
+
+
+              const response = await fetch('/admin/tokens', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
                 
                 const result = await response.json();
                 

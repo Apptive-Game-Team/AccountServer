@@ -3,6 +3,7 @@ package com.wordonline.account.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.wordonline.account.domain.Authority;
 import com.wordonline.account.dto.AuthorityResponse;
 import com.wordonline.account.entity.AuthorityEntity;
 import com.wordonline.account.entity.MemberAuthority;
@@ -85,7 +86,7 @@ public class AuthorityService {
                 .doOnError(e -> log.error("[ERROR]", e));
     }
 
-    public Flux<com.wordonline.account.domain.Authority> getAuthoritiesByIds(java.util.List<Long> authorityIds) {
+    public Flux<Authority> getAuthoritiesByIds(java.util.List<Long> authorityIds) {
         if (authorityIds == null || authorityIds.isEmpty()) {
             return Flux.empty();
         }
