@@ -51,4 +51,27 @@ public class JwtProvider {
         Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(claims));
         return jwt.getTokenValue();
     }
+
+    public String generateServerToken(String scope, Long expiryMinutes) {
+        Instant now = Instant.now();
+        
+        JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .subject("server")
+                .claim("scope", scope)
+                .claim("type", "server_token");
+
+        // If expiryMinutes is null, token never expires (or set to a very long time)
+        if (expiryMinutes != null) {
+            claimsBuilder.expiresAt(now.plusSeconds(expiryMinutes * 60));
+        } else {
+            // Set to 100 years in the future for "infinite" tokens
+            claimsBuilder.expiresAt(now.plusSeconds(60L * 60 * 24 * 365 * 100));
+        }
+
+        JwtClaimsSet claims = claimsBuilder.build();
+        Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(claims));
+        return jwt.getTokenValue();
+    }
 }

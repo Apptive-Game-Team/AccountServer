@@ -84,4 +84,13 @@ public class AuthorityService {
                 .map(AuthorityResponse::new)
                 .doOnError(e -> log.error("[ERROR]", e));
     }
+
+    public Flux<com.wordonline.account.domain.Authority> getAuthoritiesByIds(java.util.List<Long> authorityIds) {
+        if (authorityIds == null || authorityIds.isEmpty()) {
+            return Flux.empty();
+        }
+        return Flux.fromIterable(authorityIds)
+                .flatMap(authorityRepository::findById)
+                .flatMap(authorityMapper::toDomain);
+    }
 }
