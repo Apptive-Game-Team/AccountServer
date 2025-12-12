@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}">
+<head>
+    <meta charset="UTF-8">
+    <title>Server Token Issuance</title>
+</head>
+<body>
+<section>
+    <div th:replace="~{admin/fragments/nav :: admin-nav}"></div>
+    <div class="container mt-4">
+        <h1>Server Token Issuance</h1>
+        <p class="text-muted">Generate server tokens with custom expiry times and authorities (Super Admin only)</p>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Token Configuration</h5>
+            </div>
+            <div class="card-body">
+                <form id="tokenForm">
+                    <div class="mb-3">
+                        <label for="expiryMinutes" class="form-label">Expiry Time</label>
+                        <select class="form-select" id="expiryMinutes" name="expiryMinutes" required>
+                            <option value="5">5 minutes</option>
+                            <option value="30">30 minutes</option>
+                            <option value="60">1 hour</option>
+                            <option value="360">6 hours</option>
+                            <option value="1440">24 hours (1 day)</option>
+                            <option value="10080">1 week</option>
+                            <option value="43200">30 days</option>
+                            <option value="infinite">Infinite (Never expires)</option>
+                        </select>
+                        <div class="form-text">Select how long the token should be valid</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="authorityIds" class="form-label">Authorities</label>
+                        <select class="form-select" id="authorityIds" name="authorityIds" multiple size="10">
+                            <option th:each="authority : ${authorities}" 
+                                    th:value="${authority.id()}" 
+                                    th:text="${authority.system().name + ' - ' + authority.name()}">
+                            </option>
+                        </select>
+                        <div class="form-text">Select one or more authorities to include in the token (Hold Ctrl/Cmd to select multiple)</div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Generate Token</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-4" id="resultCard" style="display: none;">
+            <div class="card-header bg-success text-white">
+                <h5>Generated Token</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="tokenOutput" class="form-label">Token</label>
+                    <textarea class="form-control font-monospace" id="tokenOutput" rows="6" readonly></textarea>
+                    <button type="button" class="btn btn-secondary mt-2" onclick="copyToken()">
+                        <i class="bi bi-clipboard"></i> Copy to Clipboard
+                    </button>
+                </div>
+                <div class="alert alert-info mb-0">
+                    <strong>Expiry Info:</strong> <span id="expiryInfo"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('tokenForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch('/admin/tokens', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to generate token');
+                }
+                
+                const result = await response.json();
+                
+                document.getElementById('tokenOutput').value = result.token;
+                document.getElementById('expiryInfo').textContent = result.expiryInfo;
+                document.getElementById('resultCard').style.display = 'block';
+                
+                // Scroll to result
+                document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                alert('Error generating token: ' + error.message);
+            }
+        });
+        
+        function copyToken() {
+            const tokenOutput = document.getElementById('tokenOutput');
+            navigator.clipboard.writeText(tokenOutput.value)
+                .then(() => alert('Token copied to clipboard!'))
+                .catch(() => alert('Failed to copy token'));
+        }
+    </script>
+</section>
+</body>
+</html>
