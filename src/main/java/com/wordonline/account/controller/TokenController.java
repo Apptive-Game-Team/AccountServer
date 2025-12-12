@@ -1,6 +1,7 @@
 package com.wordonline.account.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
+@PreAuthorize("hasAuthority('SUPER_ADMIN')")
 @RequestMapping("/admin/tokens")
 public class TokenController {
 
@@ -36,32 +38,19 @@ public class TokenController {
     private final AuthorityService authorityService;
 
     @GetMapping
-    public String tokenPage(Model model, @AuthenticationPrincipal Jwt principal) {
-        // Check if user has SUPER_ADMIN authority
-        String scope = principal.getClaim("scope");
-        if (scope == null || !scope.contains("SUPER_ADMIN")) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Super admin access required");
-        }
-
+    public Mono<String> tokenPage(Model model) {
         var authorities = authorityService.getAuthorities(0, 1000);
         var authoritiesIReactive = new ReactiveDataDriverContextVariable(authorities, 1);
         model.addAttribute("authorities", authoritiesIReactive);
         
-        return "admin/tokens";
+        return Mono.just("admin/tokens");
     }
 
     @PostMapping
     @ResponseBody
     public Mono<ServerTokenResponse> generateToken(
-            ServerWebExchange exchange,
-            @AuthenticationPrincipal Jwt principal
+            ServerWebExchange exchange
     ) {
-        // Check if user has SUPER_ADMIN authority
-        String scope = principal.getClaim("scope");
-        if (scope == null || !scope.contains("SUPER_ADMIN")) {
-            return Mono.error(new ResponseStatusException(HttpStatus.FORBIDDEN, "Super admin access required"));
-        }
-
         return exchange.getFormData()
                 .flatMap(formData -> {
                     String expiryStr = formData.getFirst("expiryMinutes");
