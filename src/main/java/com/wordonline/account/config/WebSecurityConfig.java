@@ -101,15 +101,13 @@ public class WebSecurityConfig {
         http
                 .authorizeExchange(exchange -> exchange
                                 .pathMatchers(
+                                        "/api/server/*",
                                         "/api/members/guest",
                                         "/api/members/*",
                                         "/api/members",
                                         "/api/members/login",
                                         "/login",
                                         "/join").permitAll()
-//                        .pathMatchers("/admin/**").hasRole("ADMIN")
-//                        .pathMatchers("/my-page/**").hasAuthority("ROLE_USER")
-
                                 .anyExchange().authenticated()
                 );
 

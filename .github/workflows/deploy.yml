@@ -1,22 +1,13 @@
 name: CI/CD Deploy
 
 on:
-  workflow_call:
-    inputs:
-      runner-label:
-        required: true
-        type: string
-    secrets:
-      SERVER_SSH_KEY:
-        required: true
-      GAME_SERVER_HOST:
-        required: true
-      GAME_SERVER_USER:
-        required: true
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
-    runs-on: ${{ inputs.runner-label }}
+    runs-on: 'ubuntu-latest'
 
     steps:
       - name: Checkout repository
