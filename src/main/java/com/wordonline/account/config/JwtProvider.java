@@ -23,6 +23,8 @@ public class JwtProvider {
 
     private final JwtEncoder jwtEncoder;
 
+    private static final long INFINITE_TOKEN_YEARS = 100;
+    private static final long SECONDS_PER_YEAR = 60L * 60 * 24 * 365;
     private final long expiry = 36000L;
 
     public String getJwt(Member member) {
@@ -67,7 +69,7 @@ public class JwtProvider {
             claimsBuilder.expiresAt(now.plusSeconds(expiryMinutes * 60));
         } else {
             // Set to 100 years in the future for "infinite" tokens
-            claimsBuilder.expiresAt(now.plusSeconds(60L * 60 * 24 * 365 * 100));
+            claimsBuilder.expiresAt(now.plusSeconds(SECONDS_PER_YEAR * INFINITE_TOKEN_YEARS));
         }
 
         JwtClaimsSet claims = claimsBuilder.build();
