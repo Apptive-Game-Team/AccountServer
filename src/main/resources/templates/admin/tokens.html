@@ -98,9 +98,9 @@
         
         function copyToken() {
             const tokenOutput = document.getElementById('tokenOutput');
-            tokenOutput.select();
-            document.execCommand('copy');
-            alert('Token copied to clipboard!');
+            navigator.clipboard.writeText(tokenOutput.value)
+                .then(() => alert('Token copied to clipboard!'))
+                .catch(() => alert('Failed to copy token'));
         }
     </script>
 </section>
