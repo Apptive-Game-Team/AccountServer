@@ -27,7 +27,7 @@ public class GameDbConfig {
     private String password;
 
     @Bean(name = "gameConnectionFactory")
-    public ConnectionFactory logConnectionFactory() {
+    public ConnectionFactory gameConnectionFactory() {
         ConnectionFactoryOptions baseOptions = ConnectionFactoryOptions.parse(url);
 
         ConnectionFactoryOptions options = baseOptions.mutate()
@@ -39,7 +39,7 @@ public class GameDbConfig {
     }
 
     @Bean(name = "gameEntityTemplate")
-    public R2dbcEntityTemplate logEntityTemplate(@Qualifier("gameConnectionFactory") ConnectionFactory connectionFactory) {
+    public R2dbcEntityTemplate gameEntityTemplate(@Qualifier("gameConnectionFactory") ConnectionFactory connectionFactory) {
         return new R2dbcEntityTemplate(connectionFactory);
     }
 }
