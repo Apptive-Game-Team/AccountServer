@@ -1,5 +1,8 @@
 server:
   port: ${PORT}
+  protocol: ${PROTOCOL}
+  domain: ${DOMAIN}
+  external-port: ${EXTERNAL_PORT}
 
 spring:
   application:
@@ -7,9 +10,14 @@ spring:
   config:
     import: optional:file:.env[.properties]
   r2dbc:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    account:
+      url: ${ACCOUNT_DATABASE_URL}
+      username: ${ACCOUNT_DATABASE_USERNAME}
+      password: ${ACCOUNT_DATABASE_PASSWORD}
+    game:
+      url: ${GAME_DATABASE_URL}
+      username: ${GAME_DATABASE_USERNAME}
+      password: ${GAME_DATABASE_PASSWORD}
   sql:
     init:
       mode: never
