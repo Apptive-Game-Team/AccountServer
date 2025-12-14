@@ -42,9 +42,4 @@ public class GameDbConfig {
     public R2dbcEntityTemplate logEntityTemplate(@Qualifier("gameConnectionFactory") ConnectionFactory connectionFactory) {
         return new R2dbcEntityTemplate(connectionFactory);
     }
-
-    @Bean(name = "gameTransactionManager")
-    public R2dbcTransactionManager logTransactionManager(@Qualifier("gameConnectionFactory") ConnectionFactory connectionFactory) {
-        return new R2dbcTransactionManager(connectionFactory);
-    }
 }
