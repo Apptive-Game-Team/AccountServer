@@ -37,7 +37,7 @@ public class AccountDbConfig {
         return ConnectionFactories.get(options);
     }
 
-    @Bean(name = "gameEntityTemplate")
+    @Bean(name = "accountEntityTemplate")
     public R2dbcEntityTemplate accountEntityTemplate(@Qualifier("accountConnectionFactory") ConnectionFactory connectionFactory) {
         return new R2dbcEntityTemplate(connectionFactory);
     }
