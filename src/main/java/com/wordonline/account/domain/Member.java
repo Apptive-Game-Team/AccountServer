@@ -24,7 +24,6 @@ public class Member {
                 .toList();
     }
 
-
     public boolean validatePassword(String passwordPlain, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(passwordPlain, passwordHash);
     }
