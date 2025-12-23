@@ -48,7 +48,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public void handleException(Exception e) {
+    public ResponseEntity<Void> handleException(Exception e) {
         log.error("[ERROR] {}", e.getMessage(), e);
+        return ResponseEntity.internalServerError().build();
     }
 }

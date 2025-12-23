@@ -2,6 +2,8 @@ package com.wordonline.account.service;
 
 import java.util.List;
 
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.wordonline.account.domain.Authority;
 import com.wordonline.account.domain.Member;
 import com.wordonline.account.dto.JoinRequest;
+import com.wordonline.account.dto.MemberPutRequest;
 import com.wordonline.account.entity.AuthorityEntity;
 import com.wordonline.account.entity.MemberAuthority;
 import com.wordonline.account.entity.MemberEntity;
@@ -34,6 +37,25 @@ public class MemberService {
     private final PrincipalRepository principalRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthorityMapper authorityMapper;
+
+    public Mono<Void> putMember(long memberId, MemberPutRequest putRequest) {
+        return getMember(memberId)
+                .flatMap(member -> {
+                    boolean isValid = member.validatePassword(putRequest.lastPassword(), passwordEncoder);
+                    if (!isValid) {
+                        return Mono.error(() -> new AuthorizationDeniedException("last password is not valid"));
+                    }
+
+                    String passwordHash = passwordEncoder.encode(putRequest.password());
+                    member.setName(putRequest.name());
+                    member.setEmail(putRequest.email());
+                    member.setPasswordHash(passwordHash);
+                    
+                    return memberRepository.save(new MemberEntity(member));
+                })
+                .onErrorMap(DuplicateKeyException.class, error -> new IllegalArgumentException("duplicated email", error))
+                .then();
+    }
 
     public Mono<Member> getMember(Long memberId) {
         Mono<MemberEntity> memberEntityMono = memberRepository.findById(memberId);

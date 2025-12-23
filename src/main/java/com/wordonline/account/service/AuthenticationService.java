@@ -5,7 +5,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.context.i18n.LocaleContext;
-import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.wordonline.account.config.JwtProvider;
 import com.wordonline.account.domain.Member;
 import com.wordonline.account.dto.AuthResponse;
+import com.wordonline.account.dto.GuestAuthResponse;
 import com.wordonline.account.dto.JoinRequest;
 import com.wordonline.account.dto.LoginRequest;
 import com.wordonline.account.util.NicknameGenerator;
@@ -69,9 +69,11 @@ public class AuthenticationService {
                 });
     }
 
-    public Mono<AuthResponse> joinGuest(String name) {
+    public Mono<GuestAuthResponse> joinGuest(String name) {
         return getRandomJoinRequest(name)
-                .flatMap(this::join);
+                .flatMap(joinRequest ->
+                    join(joinRequest)
+                            .map(authResponse -> new GuestAuthResponse(authResponse.jwt(), joinRequest.password())));
     }
 
     public Mono<JoinRequest> getRandomJoinRequest(String name) {

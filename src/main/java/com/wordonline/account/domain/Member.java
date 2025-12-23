@@ -6,8 +6,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 @AllArgsConstructor
 public class Member {
 
@@ -23,7 +25,6 @@ public class Member {
                 .map(Authority::getAuthority)
                 .toList();
     }
-
 
     public boolean validatePassword(String passwordPlain, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(passwordPlain, passwordHash);
