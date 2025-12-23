@@ -40,16 +40,17 @@ public class MemberService {
 
     public Mono<Void> putMember(long memberId, MemberPutRequest putRequest) {
         return getMember(memberId)
-                .map(member -> member.validatePassword(putRequest.lastPassword(), passwordEncoder))
-                .map(isValid -> {
+                .flatMap(member -> {
+                    boolean isValid = member.validatePassword(putRequest.lastPassword(), passwordEncoder);
                     if (!isValid) {
                         return Mono.error(() -> new AuthorizationDeniedException("last password is not valid"));
                     }
-                    return true;
-                })
-                .flatMap(isValid -> {
+
                     String passwordHash = passwordEncoder.encode(putRequest.password());
-                    Member member = new Member(memberId, putRequest.name(), putRequest.email(), passwordHash);
+                    member.setName(putRequest.name());
+                    member.setEmail(putRequest.email());
+                    member.setPasswordHash(passwordHash);
+                    
                     return memberRepository.save(new MemberEntity(member));
                 })
                 .onErrorMap(DuplicateKeyException.class, error -> new IllegalArgumentException("duplicated email", error))
