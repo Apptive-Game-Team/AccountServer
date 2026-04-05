@@ -16,7 +16,7 @@ public class JwksController {
 
     private final JWKSet jwkSet;
 
-    @GetMapping("/jwks")
+    @GetMapping("/.well-known/jwks")
     public Mono<Map<String, Object>> getJwks() {
         return Mono.just(jwkSet.toPublicJWKSet().toJSONObject());
     }

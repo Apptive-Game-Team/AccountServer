@@ -32,8 +32,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -67,7 +69,12 @@ public class WebSecurityConfig {
 
     @Bean
     public JWKSet jwkSet() {
-        JWK jwk = new RSAKey.Builder(this.rsaPublicKey).privateKey(this.rsaPrivateKey).build();
+        JWK jwk = new RSAKey.Builder(this.rsaPublicKey)
+                .privateKey(this.rsaPrivateKey)
+                .keyUse(KeyUse.SIGNATURE)
+                .algorithm(JWSAlgorithm.RS256)
+                .keyID("2026-04-06-01")
+                .build();
         return new JWKSet(jwk);
     }
 
@@ -113,7 +120,7 @@ public class WebSecurityConfig {
                                         "/api/members/login",
                                         "/login",
                                         "/join",
-                                        "/jwks").permitAll()
+                                        "/.well-known/jwks").permitAll()
                                 .anyExchange().authenticated()
                 );
 
