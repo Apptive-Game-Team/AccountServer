@@ -66,9 +66,14 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    JwtEncoder jwtEncoder() {
+    public JWKSet jwkSet() {
         JWK jwk = new RSAKey.Builder(this.rsaPublicKey).privateKey(this.rsaPrivateKey).build();
-        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+        return new JWKSet(jwk);
+    }
+
+    @Bean
+    JwtEncoder jwtEncoder(JWKSet jwkSet) {
+        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(jwkSet);
         return new NimbusJwtEncoder(jwks);
     }
 
@@ -107,7 +112,8 @@ public class WebSecurityConfig {
                                         "/api/members",
                                         "/api/members/login",
                                         "/login",
-                                        "/join").permitAll()
+                                        "/join",
+                                        "/jwks").permitAll()
                                 .anyExchange().authenticated()
                 );
 
