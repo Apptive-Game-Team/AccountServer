@@ -32,8 +32,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jose.jwk.JWKSet;
+import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
 import com.nimbusds.jose.jwk.source.JWKSource;
@@ -66,9 +68,19 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    JwtEncoder jwtEncoder() {
-        JWK jwk = new RSAKey.Builder(this.rsaPublicKey).privateKey(this.rsaPrivateKey).build();
-        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
+    public JWKSet jwkSet() {
+        JWK jwk = new RSAKey.Builder(this.rsaPublicKey)
+                .privateKey(this.rsaPrivateKey)
+                .keyUse(KeyUse.SIGNATURE)
+                .algorithm(JWSAlgorithm.RS256)
+                .keyID("2026-04-06-01")
+                .build();
+        return new JWKSet(jwk);
+    }
+
+    @Bean
+    JwtEncoder jwtEncoder(JWKSet jwkSet) {
+        JWKSource<SecurityContext> jwks = new ImmutableJWKSet<>(jwkSet);
         return new NimbusJwtEncoder(jwks);
     }
 
@@ -107,7 +119,8 @@ public class WebSecurityConfig {
                                         "/api/members",
                                         "/api/members/login",
                                         "/login",
-                                        "/join").permitAll()
+                                        "/join",
+                                        "/.well-known/jwks").permitAll()
                                 .anyExchange().authenticated()
                 );
 
