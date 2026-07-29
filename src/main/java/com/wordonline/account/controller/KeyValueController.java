@@ -23,15 +23,6 @@ public class KeyValueController {
 
     private final KeyValueService keyValueService;
 
-    @GetMapping("/systems/{systemName}/members/{memberId}/key-values/{key}")
-    public Mono<ValueResponse> getValue(
-            @PathVariable String systemName,
-            @PathVariable Long memberId,
-            @PathVariable String key
-    ) {
-        return keyValueService.getValue(memberId, systemName, key);
-    }
-
     @GetMapping("/systems/{systemName}/members/me/key-values/{key}")
     public Mono<ValueResponse> getValue(
             @PathVariable String systemName,
