@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-@PreAuthorize("hasAuthority('SUPER_ADMIN')")
+@PreAuthorize("hasAuthority('ADMIN_SUPER_ADMIN')")
 @RequestMapping("/admin/tokens")
 public class TokenController {
 

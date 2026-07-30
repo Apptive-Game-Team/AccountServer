@@ -25,6 +25,10 @@ To use the Server Token Issuance feature, you need to have SUPER_ADMIN authority
 
 After these steps, the member will have SUPER_ADMIN authority and can access the token issuance page at `/admin/tokens`.
 
+Note: authority strings in the JWT `scope` claim are prefixed with the normalized system name,
+so the `SUPER_ADMIN` authority on the `ADMIN` system is granted as `ADMIN_SUPER_ADMIN`. The system
+name must be `ADMIN` (or any name normalizing to `ADMIN`) for `/admin/tokens` to accept it.
+
 ## Alternative: Use the Admin UI
 
 You can also set this up using the admin interface:
