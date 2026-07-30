@@ -1,5 +1,7 @@
 package com.wordonline.account.service;
 
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -29,6 +31,8 @@ public class AuthenticationService {
 
     private final static String LOGIN_FAIL_MESSAGE = "이메일 또는 비밀번호가 잘못됐습니다.";
     private final static String EMAIL_REDUNDANT = "사용 중인 Email입니다.";
+    private final static SecureRandom SECURE_RANDOM = new SecureRandom();
+    private final static int GUEST_PASSWORD_BYTES = 24;
 
     private final PasswordEncoder passwordEncoder;
     private final MemberService memberService;
@@ -58,8 +62,10 @@ public class AuthenticationService {
                         throwable -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                 LOGIN_FAIL_MESSAGE)
                 )
+                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                        LOGIN_FAIL_MESSAGE)))
                 .handle((member, sink) -> {
-                    if (member == null || !member.validatePassword(memberRequest.password(),
+                    if (!member.validatePassword(memberRequest.password(),
                             passwordEncoder)) {
                         sink.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                 LOGIN_FAIL_MESSAGE));
@@ -77,9 +83,8 @@ public class AuthenticationService {
     }
 
     public Mono<JoinRequest> getRandomJoinRequest(String name) {
-        String uniqueEmail =
-                "guest_" + System.currentTimeMillis() + UUID.randomUUID() + "@example.com";
-        String password = "pw_" + System.currentTimeMillis();
+        String uniqueEmail = "guest_" + UUID.randomUUID() + "@example.com";
+        String password = generateGuestPassword();
         if (name == null || name.isBlank() ) {
             return Mono.deferContextual(ctx -> {
                         LocaleContext localeContext = ctx.get(LocaleContext.class);
@@ -89,6 +94,12 @@ public class AuthenticationService {
             );
         }
         return Mono.just(new JoinRequest(uniqueEmail, name, password));
+    }
+
+    private static String generateGuestPassword() {
+        byte[] bytes = new byte[GUEST_PASSWORD_BYTES];
+        SECURE_RANDOM.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 
     private String getLocaleString(LocaleContext localeContext) {
