@@ -2,6 +2,7 @@ package com.wordonline.account.controller;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,7 +52,7 @@ public class MemberController {
     @PutMapping("/me")
     public Mono<Void> putMember(
             @AuthenticationPrincipal Jwt principal,
-            @RequestBody MemberPutRequest putRequest
+            @Validated @RequestBody MemberPutRequest putRequest
     ){
         long memberId = principal.getClaim("memberId");
         return memberService.putMember(memberId, putRequest);
