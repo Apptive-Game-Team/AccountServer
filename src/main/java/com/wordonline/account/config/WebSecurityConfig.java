@@ -115,12 +115,12 @@ public class WebSecurityConfig {
                                 .pathMatchers(
                                         "/api/server/*",
                                         "/api/members/guest",
-                                        "/api/members/*",
                                         "/api/members",
                                         "/api/members/login",
                                         "/login",
                                         "/join",
                                         "/.well-known/jwks").permitAll()
+                                .pathMatchers("/admin", "/admin/**").hasAuthority("SUPER_ADMIN")
                                 .anyExchange().authenticated()
                 );
 
