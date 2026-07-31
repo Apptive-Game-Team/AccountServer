@@ -7,7 +7,6 @@ import com.wordonline.account.domain.Authority;
 import com.wordonline.account.dto.AuthorityResponse;
 import com.wordonline.account.entity.AuthorityEntity;
 import com.wordonline.account.entity.MemberAuthority;
-import com.wordonline.account.entity.MemberEntity;
 import com.wordonline.account.mapper.AuthorityMapper;
 import com.wordonline.account.repository.AuthorityRepository;
 import com.wordonline.account.repository.MemberAuthorityRepository;
@@ -34,23 +33,29 @@ public class AuthorityService {
 
         // TODO - 권한 부여자, 권한 체크
 
-        Mono<MemberEntity> applier = memberRepository.findById(authorityId);
-
-        return applier.flatMap(memberEntity -> {
-            MemberAuthority memberAuthority = new MemberAuthority(applierId, authorityId);
-            return memberAuthorityRepository.save(memberAuthority);
-        }).hasElement();
+        return requireMemberAndAuthority(applierId, authorityId)
+                .flatMap(found -> memberAuthorityRepository
+                        .save(new MemberAuthority(applierId, authorityId)))
+                .hasElement();
     }
 
     public Mono<Boolean> revokeAuthority(Long adminId, Long applierId, Long authorityId) {
 
         // TODO - 권한 부여자, 권한 체크
 
-        Mono<MemberEntity> applier = memberRepository.findById(authorityId);
-
-        return applier.flatMap(memberEntity ->
-                        memberAuthorityRepository.deleteByMemberIdAndAuthorityId(applierId, authorityId))
+        return requireMemberAndAuthority(applierId, authorityId)
+                .flatMap(found -> memberAuthorityRepository
+                        .deleteByMemberIdAndAuthorityId(applierId, authorityId))
                 .map(num -> num > 0);
+    }
+
+    private Mono<?> requireMemberAndAuthority(Long memberId, Long authorityId) {
+        return memberRepository.findById(memberId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException(
+                        "Member not found: " + memberId)))
+                .zipWith(authorityRepository.findById(authorityId)
+                        .switchIfEmpty(Mono.error(new IllegalArgumentException(
+                                "Authority not found: " + authorityId))));
     }
 
     public Mono<AuthorityResponse> createAuthority(Long systemId, String name) {
