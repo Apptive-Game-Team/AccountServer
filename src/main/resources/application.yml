@@ -4,6 +4,20 @@ server:
   domain: ${DOMAIN}
   external-port: ${EXTERNAL_PORT}
 
+# Metrics run on their own port so the public app port never serves /actuator.
+# The app SecurityFilterChain does not guard the management context, so
+# MANAGEMENT_PORT must stay reachable only from the Prometheus host.
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 spring:
   application:
     name: account-server
