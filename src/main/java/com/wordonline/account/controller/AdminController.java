@@ -164,8 +164,8 @@ public class AdminController {
     }
 
     @PostMapping("/members/{memberId}/authorities")
-    public String grantAuthorityToMember(@PathVariable Long memberId, ServerWebExchange exchange) {
-        exchange.getFormData()
+    public Mono<String> grantAuthorityToMember(@PathVariable Long memberId, ServerWebExchange exchange) {
+        return exchange.getFormData()
                 .flatMap(formdata -> {
                     String authorityIdStr = formdata.getFirst("authorityId");
                     if (authorityIdStr == null) {
@@ -176,15 +176,15 @@ public class AdminController {
                     Long authorityId = Long.parseLong(authorityIdStr);
                     // Assuming adminId is not strictly needed for now, passing null
                     return authorityService.grantAuthority(null, memberId, authorityId);
-                }).subscribe();
-        return "redirect:/admin/members/" + memberId;
+                })
+                .thenReturn("redirect:/admin/members/" + memberId);
     }
 
     @PostMapping("/members/{memberId}/authorities/{authorityId}/delete")
-    public String revokeAuthorityFromMember(@PathVariable Long memberId,
+    public Mono<String> revokeAuthorityFromMember(@PathVariable Long memberId,
             @PathVariable Long authorityId) {
         // Assuming adminId is not strictly needed for now, passing null
-        authorityService.revokeAuthority(null, memberId, authorityId).subscribe();
-        return "redirect:/admin/members/" + memberId;
+        return authorityService.revokeAuthority(null, memberId, authorityId)
+                .thenReturn("redirect:/admin/members/" + memberId);
     }
 }
