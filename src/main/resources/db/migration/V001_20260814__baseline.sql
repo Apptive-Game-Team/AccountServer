@@ -1,9 +1,10 @@
 -- Baseline of the account database schema as it already exists.
 --
--- This file describes the live schema; it is not a change. The migrate workflow
--- runs Flyway with -baselineOnMigrate=true -baselineVersion=1, so an existing
--- database records version 1 as already applied and never executes this file.
--- Running it against a populated database would fail on the first CREATE TABLE.
+-- This file describes the live schema; it is not a change. AccountFlywayConfig runs
+-- Flyway with baselineOnMigrate=true and baselineVersion=001.20260814 -- this file's
+-- own version -- so an existing database records it as already applied and never
+-- executes it. Running it against a populated database would fail on the first
+-- CREATE TABLE. An empty database has nothing to baseline, so it runs there.
 --
 -- Source: schema-only pg_dump of the account database (PostgreSQL 14.24).
 -- Ownership, ACLs, psql meta commands and the session SET preamble are stripped;

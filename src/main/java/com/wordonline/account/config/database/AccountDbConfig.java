@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
 
@@ -25,6 +26,8 @@ public class AccountDbConfig {
     @Value("${spring.r2dbc.account.password}")
     private String password;
 
+    // Flyway must finish migrating before anything opens an account connection.
+    @DependsOn("accountFlyway")
     @Bean(name = "accountConnectionFactory")
     public ConnectionFactory accountConnectionFactory() {
         ConnectionFactoryOptions baseOptions = ConnectionFactoryOptions.parse(url);
