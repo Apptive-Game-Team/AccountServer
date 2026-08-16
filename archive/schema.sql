@@ -1,3 +1,12 @@
+-- Retained for traceability only. Never executed.
+--
+-- This is the hand-appended DDL journal the account database was maintained with
+-- before Flyway. Nothing in the application ever ran it, it is not idempotent,
+-- and it fails on the first statement against a populated database.
+--
+-- The schema it ended at is described by migration/V001_20260814__baseline.sql.
+-- Schema changes go in migration/; see README.md.
+
 CREATE TABLE principal (
     id BIGSERIAL PRIMARY KEY
 );

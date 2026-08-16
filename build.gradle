@@ -42,6 +42,11 @@ dependencies {
     // Database
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
     runtimeOnly 'org.postgresql:r2dbc-postgresql'
+    // Flyway is JDBC-only, so the JDBC driver ships alongside the R2DBC one.
+    // Flyway 10 moved database support out of the core jar.
+    implementation 'org.flywaydb:flyway-core'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
 
     //Spring Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
