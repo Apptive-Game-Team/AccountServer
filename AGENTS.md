@@ -20,3 +20,16 @@ Confirm the metadata after creation:
 gh issue view <issue-number> --json assignees,labels
 gh pr view <pr-number> --json assignees,labels
 ```
+
+## Versioning
+
+`version` in `build.gradle` is the account server's single version source.
+Do not bump it in a pull request. The monorepo `deploy` skill bumps it once per
+promotion: it commits `chore(release): AccountServer vX.Y.Z` to `main`, merges
+`main` into `deploy`, then tags and releases `vX.Y.Z` on the merge commit. The
+level comes from the Conventional Commit messages promoted in that release:
+MAJOR for a `!` marker or a `BREAKING CHANGE` trailer, MINOR for `feat:`, PATCH
+otherwise, so write accurate commit types.
+
+Never add a second runtime version or use a `-SNAPSHOT` deployable version.
+Spring Boot build info embeds this value.
