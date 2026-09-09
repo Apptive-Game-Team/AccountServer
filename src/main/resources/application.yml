@@ -3,6 +3,7 @@ server:
   protocol: ${PROTOCOL}
   domain: ${DOMAIN}
   external-port: ${EXTERNAL_PORT}
+  internal-base-url: ${INTERNAL_BASE_URL:}
 
 # Metrics run on their own port so the public app port never serves /actuator.
 # Health and Prometheus endpoints allow unauthenticated scrapes.

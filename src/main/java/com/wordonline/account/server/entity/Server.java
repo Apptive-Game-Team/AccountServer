@@ -23,14 +23,17 @@ public class Server {
     private ServerType type;
 
     @Setter
+    private String internalBaseUrl;
+
+    @Setter
     private ServerState state;
 
     public String getUrl() {
         return String.format("%s://%s:%d", protocol, domain, port);
     }
 
-    public Server(String protocol, String domain, int port, ServerType serverType, ServerState state) {
-        this(null, protocol, domain, port, serverType, state);
+    public Server(String protocol, String domain, int port, ServerType serverType, String internalBaseUrl, ServerState state) {
+        this(null, protocol, domain, port, serverType, internalBaseUrl, state);
     }
 }
 
