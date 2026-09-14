@@ -27,18 +27,34 @@ public class ServerStatusService {
     @Value("${server.protocol}")
     private String protocol;
 
+    @Value("${server.internal-base-url}")
+    private String internalBaseUrl;
+
     @Getter
     private ServerState currentState = ServerState.ACTIVE;
 
     public Mono<Void> setServerStatus(ServerState state) {
         currentState = state;
+        String resolvedInternalBaseUrl = normalizeInternalBaseUrl(internalBaseUrl);
         return serverRepository.findByDomainAndPort(domain, port)
-                .defaultIfEmpty(new Server(protocol, domain, port, ServerType.ACCOUNT, state))
+                .defaultIfEmpty(new Server(protocol, domain, port, ServerType.ACCOUNT, resolvedInternalBaseUrl, state))
                 .map(server -> {
                     server.setState(state);
+                    server.setInternalBaseUrl(resolvedInternalBaseUrl);
                     return server;
                 })
                 .flatMap(serverRepository::save)
                 .then();
+    }
+
+    private String normalizeInternalBaseUrl(String rawInternalBaseUrl) {
+        if (rawInternalBaseUrl == null) {
+            return null;
+        }
+        String trimmed = rawInternalBaseUrl.strip();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        return trimmed.replaceAll("/+$", "");
     }
 }
