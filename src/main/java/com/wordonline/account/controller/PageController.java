@@ -35,10 +35,10 @@ public class PageController {
         return exchange.getFormData().flatMap(formData -> {
             LoginRequest loginRequest = new LoginRequest(formData.getFirst("email"),
                     formData.getFirst("password"));
-            return authenticationService.login(loginRequest)
-                    .map(authResponse -> {
+            return authenticationService.issueAccessToken(loginRequest)
+                    .map(accessToken -> {
                         ResponseCookie cookie = ResponseCookie.from("accessToken",
-                                        authResponse.jwt())
+                                        accessToken)
                                 .httpOnly(true)
                                 .path("/")
                                 .maxAge(3600) // 1 hour
