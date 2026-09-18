@@ -5,6 +5,7 @@ import java.util.Base64;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import org.springframework.context.i18n.LocaleContext;
 import org.springframework.http.HttpStatus;
@@ -42,6 +43,12 @@ public class AuthenticationService {
     private final RefreshTokenService refreshTokenService;
 
     public Mono<IssuedTokens> join(JoinRequest joinRequest, TokenDelivery delivery) {
+        return registerThenLogin(joinRequest, delivery,
+                () -> memberService.createMember(joinRequest));
+    }
+
+    private Mono<IssuedTokens> registerThenLogin(JoinRequest joinRequest, TokenDelivery delivery,
+            Supplier<Mono<Member>> createMember) {
         return memberService.getMember(joinRequest.email())
                 .hasElement()
                 .flatMap(exists ->
@@ -50,8 +57,8 @@ public class AuthenticationService {
                         return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                 EMAIL_REDUNDANT));
                     }
-                    return memberService.createMember(joinRequest)
-                            .flatMap(id -> login(new LoginRequest(joinRequest), delivery));
+                    return createMember.get()
+                            .flatMap(created -> login(new LoginRequest(joinRequest), delivery));
                 });
     }
 
@@ -69,10 +76,15 @@ public class AuthenticationService {
                 .map(jwtProvider::getJwt);
     }
 
+    /**
+     * The member row is written with is_guest set, and login() reads it back, so the access token
+     * this returns already carries the guest claim.
+     */
     public Mono<GuestTokens> joinGuest(String name, TokenDelivery delivery) {
         return getRandomJoinRequest(name)
                 .flatMap(joinRequest ->
-                        join(joinRequest, delivery)
+                        registerThenLogin(joinRequest, delivery,
+                                () -> memberService.createGuest(joinRequest))
                                 .map(tokens -> new GuestTokens(tokens, joinRequest.password())));
     }
 

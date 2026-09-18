@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import com.wordonline.account.domain.Authority;
@@ -25,10 +26,13 @@ public class MemberEntity {
     private String name;
     private String email;
     private String passwordHash;
+    // The property name a boolean getter yields is ambiguous, so the column is named outright.
+    @Column("is_guest")
+    private boolean guest;
 
     public MemberEntity(Member member) {
         this(member.getId(), member.getPrincipalId(), member.getName(), member.getEmail(),
-                member.getPasswordHash());
+                member.getPasswordHash(), member.isGuest());
     }
 
     public Member toDomain() {
@@ -42,6 +46,7 @@ public class MemberEntity {
                 name,
                 email,
                 passwordHash,
+                guest,
                 Optional.ofNullable(authorities)
                         .orElse(List.of()).stream().toList()
         );
