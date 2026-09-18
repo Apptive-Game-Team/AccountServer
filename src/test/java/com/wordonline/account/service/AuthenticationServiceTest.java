@@ -1,6 +1,7 @@
 package com.wordonline.account.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -73,7 +74,7 @@ class AuthenticationServiceTest {
 
     @Test
     void refreshRotatesTheTokenAndMintsAFreshAccessToken() {
-        Member member = new Member(9L, 1L, "tester", "tester@example.com", "hash", List.of());
+        Member member = new Member(9L, 1L, "tester", "tester@example.com", "hash", false, List.of());
         when(refreshTokenService.rotate("old-token", TokenDelivery.COOKIE.platform()))
                 .thenReturn(Mono.just(new RotatedRefreshToken(9L, "new-token")));
         when(memberService.getMember(9L)).thenReturn(Mono.just(member));
@@ -130,5 +131,56 @@ class AuthenticationServiceTest {
         // email carries no clock reading the password could be rebuilt from
         assertTrue(first.email().matches(
                 "guest_[0-9a-f-]{36}@example\\.com"), first.email());
+    }
+
+    /**
+     * joinGuest() must write the member row with is_guest set rather than leave the flag to be
+     * guessed from the generated email later. login() then reads the row back, so the access
+     * token it returns carries the guest claim.
+     */
+    @Test
+    void joiningAsAGuestCreatesTheMemberAsAGuest() {
+        Member guest = new Member(9L, 1L, "guest", "guest_x@example.com", "hash", true, List.of());
+        // The first lookup is the redundant-email check, the second is the login that follows.
+        when(memberService.getMember(anyString()))
+                .thenReturn(Mono.empty())
+                .thenReturn(Mono.just(guest));
+        when(memberService.createGuest(any(JoinRequest.class))).thenReturn(Mono.just(guest));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(jwtProvider.getJwt(guest)).thenReturn("access.jwt");
+        when(jwtProvider.getAccessTokenExpirySeconds()).thenReturn(3600L);
+        when(refreshTokenService.issue(9L, TokenDelivery.BODY.platform()))
+                .thenReturn(Mono.just("refresh-token"));
+
+        StepVerifier.create(authenticationService.joinGuest("guest", TokenDelivery.BODY))
+                .assertNext(tokens -> {
+                    assertEquals("access.jwt", tokens.tokens().accessToken());
+                    assertNotNull(tokens.guestPassword());
+                })
+                .verifyComplete();
+
+        verify(memberService, never()).createMember(any(JoinRequest.class));
+    }
+
+    @Test
+    void joiningAsARealMemberDoesNotCreateAGuest() {
+        Member member = new Member(9L, 1L, "tester", "tester@example.com", "hash", false,
+                List.of());
+        JoinRequest joinRequest = new JoinRequest("tester@example.com", "tester", "12345678");
+        when(memberService.getMember("tester@example.com"))
+                .thenReturn(Mono.empty())
+                .thenReturn(Mono.just(member));
+        when(memberService.createMember(joinRequest)).thenReturn(Mono.just(member));
+        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        when(jwtProvider.getJwt(member)).thenReturn("access.jwt");
+        when(jwtProvider.getAccessTokenExpirySeconds()).thenReturn(3600L);
+        when(refreshTokenService.issue(9L, TokenDelivery.BODY.platform()))
+                .thenReturn(Mono.just("refresh-token"));
+
+        StepVerifier.create(authenticationService.join(joinRequest, TokenDelivery.BODY))
+                .assertNext(tokens -> assertEquals("access.jwt", tokens.accessToken()))
+                .verifyComplete();
+
+        verify(memberService, never()).createGuest(any(JoinRequest.class));
     }
 }

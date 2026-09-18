@@ -58,6 +58,9 @@ public class JwtProvider {
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .claim("memberId", member.getId())
+                // A JSON boolean, not a string: the client reads it straight off the decoded
+                // payload, and it is the only thing that tells a restored guest session apart.
+                .claim("guest", member.isGuest())
                 .build();
 
         Jwt jwt = jwtEncoder.encode(JwtEncoderParameters.from(claims));

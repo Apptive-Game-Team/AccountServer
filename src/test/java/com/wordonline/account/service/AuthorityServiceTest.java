@@ -52,7 +52,7 @@ class AuthorityServiceTest {
     @Test
     void grantAuthorityFailsWhenAuthorityDoesNotExist() {
         when(memberRepository.findById(7L))
-                .thenReturn(Mono.just(new MemberEntity(7L, 1L, "name", "a@b.c", "hash")));
+                .thenReturn(Mono.just(new MemberEntity(7L, 1L, "name", "a@b.c", "hash", false)));
         when(authorityRepository.findById(120L)).thenReturn(Mono.empty());
 
         StepVerifier.create(authorityService.grantAuthority(null, 7L, 120L))
@@ -63,7 +63,7 @@ class AuthorityServiceTest {
     @Test
     void grantAuthoritySavesMemberIdAndAuthorityId() {
         when(memberRepository.findById(7L))
-                .thenReturn(Mono.just(new MemberEntity(7L, 1L, "name", "a@b.c", "hash")));
+                .thenReturn(Mono.just(new MemberEntity(7L, 1L, "name", "a@b.c", "hash", false)));
         when(authorityRepository.findById(120L))
                 .thenReturn(Mono.just(new AuthorityEntity(120L, 1L, "READ")));
         when(memberAuthorityRepository.save(any(MemberAuthority.class)))
