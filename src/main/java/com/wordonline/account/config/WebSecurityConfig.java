@@ -5,6 +5,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -54,7 +55,19 @@ import lombok.RequiredArgsConstructor;
 @EnableReactiveMethodSecurity
 public class WebSecurityConfig {
 
+    static final String ALLOWED_ORIGINS_PROPERTY = "cors.allowed-origins";
+
+    private static final String ANY_ORIGIN = "*";
+
     private final CookieAuthenticationFilter cookieAuthenticationFilter;
+
+    /**
+     * Origin patterns allowed to send credentialed requests. Deployments extend the list
+     * through CORS_ALLOWED_ORIGINS; the default covers the WebGL build, the admin pages and
+     * localhost on any port for development.
+     */
+    @Value("${cors.allowed-origins}")
+    private List<String> allowedOrigins;
 
     @Value("${jwt.access-public-key}")
     private RSAPublicKey rsaPublicKey;
@@ -122,6 +135,9 @@ public class WebSecurityConfig {
                                         "/api/members/guest",
                                         "/api/members",
                                         "/api/members/login",
+                                        // Both authenticate by refresh token, not by access token.
+                                        "/api/auth/refresh",
+                                        "/api/auth/logout",
                                         "/login",
                                         "/join",
                                         "/.well-known/jwks").permitAll()
@@ -153,9 +169,15 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-    private CorsConfigurationSource corsConfigurationSource() {
+    /**
+     * Credentialed CORS against a named list of origins. A wildcard here would be reflected back
+     * as the caller's own Origin together with {@code Access-Control-Allow-Credentials: true},
+     * which would let any website spend a logged-in member's refresh cookie and mint access
+     * tokens for them.
+     */
+    CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.addAllowedOriginPattern("*");
+        allowedOriginPatterns().forEach(configuration::addAllowedOriginPattern);
         configuration.addAllowedMethod("*");
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
@@ -163,6 +185,28 @@ public class WebSecurityConfig {
         var source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private List<String> allowedOriginPatterns() {
+        List<String> patterns = allowedOrigins.stream()
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+        if (patterns.isEmpty()) {
+            throw new IllegalStateException(
+                    ALLOWED_ORIGINS_PROPERTY + " must name at least one origin");
+        }
+        patterns.forEach(WebSecurityConfig::rejectWildcard);
+        return patterns;
+    }
+
+    private static void rejectWildcard(String origin) {
+        if (ANY_ORIGIN.equals(origin)) {
+            throw new IllegalStateException(ALLOWED_ORIGINS_PROPERTY
+                    + " must name each origin. \"" + ANY_ORIGIN
+                    + "\" together with allowCredentials lets any website read a logged-in"
+                    + " member's tokens.");
+        }
     }
 
     @Bean

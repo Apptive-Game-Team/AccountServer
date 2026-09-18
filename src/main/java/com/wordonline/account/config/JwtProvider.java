@@ -25,7 +25,17 @@ public class JwtProvider {
 
     private static final long INFINITE_TOKEN_YEARS = 100;
     private static final long SECONDS_PER_YEAR = 60L * 60 * 24 * 365;
-    private final long expiry = 36000L;
+
+    /**
+     * One hour. The game server checks the access token at the WebSocket handshake and at the
+     * STOMP CONNECT frame only, never per message, so a shorter life does not cut off a match
+     * already in progress; the refresh token covers the rest.
+     */
+    private static final long ACCESS_TOKEN_EXPIRY_SECONDS = 3600L;
+
+    public long getAccessTokenExpirySeconds() {
+        return ACCESS_TOKEN_EXPIRY_SECONDS;
+    }
 
     public String getJwt(Member member) {
         PrincipalDetails principal = new PrincipalDetails(member);
@@ -44,7 +54,7 @@ public class JwtProvider {
         JwtClaimsSet claims = JwtClaimsSet.builder()
                 .issuer("self")
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiry))
+                .expiresAt(now.plusSeconds(ACCESS_TOKEN_EXPIRY_SECONDS))
                 .subject(authentication.getName())
                 .claim("scope", scope)
                 .claim("memberId", member.getId())

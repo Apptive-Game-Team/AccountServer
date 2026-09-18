@@ -14,11 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.wordonline.account.config.JwtProvider;
+import com.wordonline.account.domain.GuestTokens;
+import com.wordonline.account.domain.IssuedTokens;
 import com.wordonline.account.domain.Member;
-import com.wordonline.account.dto.AuthResponse;
-import com.wordonline.account.dto.GuestAuthResponse;
 import com.wordonline.account.dto.JoinRequest;
 import com.wordonline.account.dto.LoginRequest;
+import com.wordonline.account.dto.TokenDelivery;
 import com.wordonline.account.util.NicknameGenerator;
 
 import lombok.RequiredArgsConstructor;
@@ -38,8 +39,9 @@ public class AuthenticationService {
     private final MemberService memberService;
     private final JwtProvider jwtProvider;
     private final NicknameGenerator nicknameGenerator;
+    private final RefreshTokenService refreshTokenService;
 
-    public Mono<AuthResponse> join(JoinRequest joinRequest) {
+    public Mono<IssuedTokens> join(JoinRequest joinRequest, TokenDelivery delivery) {
         return memberService.getMember(joinRequest.email())
                 .hasElement()
                 .flatMap(exists ->
@@ -49,15 +51,48 @@ public class AuthenticationService {
                                 EMAIL_REDUNDANT));
                     }
                     return memberService.createMember(joinRequest)
-                            .flatMap(id -> login(new LoginRequest(joinRequest)));
+                            .flatMap(id -> login(new LoginRequest(joinRequest), delivery));
                 });
     }
 
-    public Mono<AuthResponse> login(LoginRequest memberRequest) {
+    public Mono<IssuedTokens> login(LoginRequest memberRequest, TokenDelivery delivery) {
+        return authenticate(memberRequest)
+                .flatMap(member -> issueTokens(member, delivery));
+    }
 
-        Mono<Member> memberMono = memberService.getMember(memberRequest.email());
+    /**
+     * The Thymeleaf login form keeps the access token in its own cookie and has no use for a
+     * refresh token, so signing in there does not open a token family.
+     */
+    public Mono<String> issueAccessToken(LoginRequest memberRequest) {
+        return authenticate(memberRequest)
+                .map(jwtProvider::getJwt);
+    }
 
-        return memberMono
+    public Mono<GuestTokens> joinGuest(String name, TokenDelivery delivery) {
+        return getRandomJoinRequest(name)
+                .flatMap(joinRequest ->
+                        join(joinRequest, delivery)
+                                .map(tokens -> new GuestTokens(tokens, joinRequest.password())));
+    }
+
+    public Mono<IssuedTokens> refresh(String presentedToken, TokenDelivery delivery) {
+        return refreshTokenService.rotate(presentedToken, delivery.platform())
+                .flatMap(rotated -> memberService.getMember(rotated.memberId())
+                        .switchIfEmpty(Mono.error(() -> new ResponseStatusException(
+                                HttpStatus.UNAUTHORIZED, LOGIN_FAIL_MESSAGE)))
+                        .map(member -> new IssuedTokens(
+                                jwtProvider.getJwt(member),
+                                rotated.refreshToken(),
+                                jwtProvider.getAccessTokenExpirySeconds())));
+    }
+
+    public Mono<Void> logout(String presentedToken) {
+        return refreshTokenService.revoke(presentedToken);
+    }
+
+    private Mono<Member> authenticate(LoginRequest memberRequest) {
+        return memberService.getMember(memberRequest.email())
                 .onErrorMap(
                         throwable -> new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                 LOGIN_FAIL_MESSAGE)
@@ -71,15 +106,17 @@ public class AuthenticationService {
                                 LOGIN_FAIL_MESSAGE));
                         return;
                     }
-                    sink.next(new AuthResponse(jwtProvider.getJwt(member)));
+                    sink.next(member);
                 });
     }
 
-    public Mono<GuestAuthResponse> joinGuest(String name) {
-        return getRandomJoinRequest(name)
-                .flatMap(joinRequest ->
-                    join(joinRequest)
-                            .map(authResponse -> new GuestAuthResponse(authResponse.jwt(), joinRequest.password())));
+    private Mono<IssuedTokens> issueTokens(Member member, TokenDelivery delivery) {
+        String accessToken = jwtProvider.getJwt(member);
+        return refreshTokenService.issue(member.getId(), delivery.platform())
+                .map(refreshToken -> new IssuedTokens(
+                        accessToken,
+                        refreshToken,
+                        jwtProvider.getAccessTokenExpirySeconds()));
     }
 
     public Mono<JoinRequest> getRandomJoinRequest(String name) {
