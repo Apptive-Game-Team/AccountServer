@@ -63,8 +63,8 @@ public class WebSecurityConfig {
 
     /**
      * Origin patterns allowed to send credentialed requests. Deployments extend the list
-     * through CORS_ALLOWED_ORIGINS; the default covers the WebGL build, the admin pages and
-     * localhost on any port for development.
+     * through CORS_ALLOWED_ORIGINS; the default covers the WebGL build, the address itch.io
+     * serves that build from, the admin pages and localhost on any port for development.
      */
     @Value("${cors.allowed-origins}")
     private List<String> allowedOrigins;
