@@ -18,6 +18,11 @@ public class Member {
     private String name;
     private String email;
     private String passwordHash;
+    /**
+     * True while the account is the one AuthenticationService.joinGuest() generated. The column
+     * behind it is the only authority on this; the guest email shape is not.
+     */
+    private boolean guest;
     private List<Authority> authorityList;
 
     public List<String> getAuthorityStringList() {
@@ -30,19 +35,21 @@ public class Member {
         return passwordEncoder.matches(passwordPlain, passwordHash);
     }
 
-    public Member(Long principalId, String name, String email, String passwordHash) {
+    public Member(Long principalId, String name, String email, String passwordHash,
+            boolean guest) {
         this(
                 null,
                 principalId,
                 name,
                 email,
                 passwordHash,
+                guest,
                 null
         );
     }
 
     public Member(Member member) {
         this(member.id, member.principalId, member.name, member.email, member.passwordHash,
-                member.getAuthorityList());
+                member.guest, member.getAuthorityList());
     }
 }

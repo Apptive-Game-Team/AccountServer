@@ -8,6 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.bind.support.WebExchangeBindException;
+import org.springframework.web.server.ResponseStatusException;
 
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
@@ -45,6 +46,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleValidationException(MethodArgumentNotValidException e) {
         log.trace(e.getMessage());
         return ResponseEntity.badRequest().body(INVALID_REQUEST_MESSAGE);
+    }
+
+    /**
+     * Without this the handler below would answer every ResponseStatusException with 500, so a
+     * rejected refresh token would read as a server fault instead of the 401 the contract
+     * states.
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException e) {
+        log.trace(e.getMessage());
+        return ResponseEntity.status(e.getStatusCode()).body(e.getReason());
     }
 
     @ExceptionHandler(Exception.class)
