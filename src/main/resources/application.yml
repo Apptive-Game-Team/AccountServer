@@ -45,5 +45,10 @@ jwt:
 # can never contain "*": the server would then reflect any caller's Origin back and hand a
 # logged-in member's refresh cookie to whichever site asked.
 # Entries are Spring origin patterns, which is what lets the localhost entry cover any dev port.
+# html-classic.itch.zone is where itch.io serves the WebGL build from, and the same host serves
+# every other HTML game on itch.io, so any of them may call this server. They get nothing a
+# stranger could not already ask for: the refresh cookie is SameSite=Lax and is never attached
+# from there, and without it every endpoint on this list still needs a token. The game server
+# allows the same host, in CorsConfig.
 cors:
-  allowed-origins: "${CORS_ALLOWED_ORIGINS:https://arcanecasters.theevilent.com,https://account.theevilent.com,http://localhost:[*]}"
+  allowed-origins: "${CORS_ALLOWED_ORIGINS:https://arcanecasters.theevilent.com,https://account.theevilent.com,https://html-classic.itch.zone,http://localhost:[*]}"
