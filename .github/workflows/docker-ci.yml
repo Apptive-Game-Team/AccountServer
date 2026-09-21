@@ -6,6 +6,10 @@ on:
       - dev
     tags:
       - 'v*'
+  pull_request:
+    branches:
+      - dev
+      - deploy
 
 jobs:
   docker:
@@ -25,6 +29,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to GitHub Container Registry
+        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -46,7 +51,7 @@ jobs:
         with:
           context: .
           platforms: linux/amd64,linux/arm64
-          push: true
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
