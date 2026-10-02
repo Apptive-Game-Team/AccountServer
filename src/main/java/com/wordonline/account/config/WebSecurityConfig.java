@@ -140,6 +140,9 @@ public class WebSecurityConfig {
                                         "/api/auth/logout",
                                         "/login",
                                         "/join",
+                                        "/css/**",
+                                        "/images/**",
+                                        "/favicon.ico",
                                         "/.well-known/jwks").permitAll()
                                 .pathMatchers("/admin", "/admin/**").hasAuthority("SUPER_ADMIN")
                                 .anyExchange().authenticated()
