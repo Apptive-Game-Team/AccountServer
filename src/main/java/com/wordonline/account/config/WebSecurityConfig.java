@@ -134,6 +134,7 @@ public class WebSecurityConfig {
                                         "/api/server/*",
                                         "/api/members/guest",
                                         "/api/members",
+                                        "/api/members/search",
                                         "/api/members/login",
                                         // Both authenticate by refresh token, not by access token.
                                         "/api/auth/refresh",

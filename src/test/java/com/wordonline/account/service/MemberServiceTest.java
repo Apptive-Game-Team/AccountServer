@@ -130,6 +130,31 @@ class MemberServiceTest {
         assertFalse(saved.getValue().isGuest());
     }
 
+    @Test
+    void searchMembers_blankOrNullQuery_returnsEmpty() {
+        StepVerifier.create(memberService.searchMembers(null, 20))
+                .verifyComplete();
+
+        StepVerifier.create(memberService.searchMembers("   ", 20))
+                .verifyComplete();
+
+        verify(memberRepository, never()).searchMembers(any(), any(int.class));
+    }
+
+    @Test
+    void searchMembers_validQuery_delegatesToRepositoryWithClampedLimit() {
+        MemberEntity entity1 = new MemberEntity(1L, 101L, "Alice", "alice@example.com", "hash1", false);
+        MemberEntity entity2 = new MemberEntity(2L, 102L, "Alicia", "alicia@example.com", "hash2", false);
+        when(memberRepository.searchMembers("ali", 50)).thenReturn(Flux.just(entity1, entity2));
+
+        StepVerifier.create(memberService.searchMembers("ali", 100))
+                .expectNextMatches(m -> m.getId().equals(1L) && m.getName().equals("Alice"))
+                .expectNextMatches(m -> m.getId().equals(2L) && m.getName().equals("Alicia"))
+                .verifyComplete();
+
+        verify(memberRepository).searchMembers("ali", 50);
+    }
+
     private void givenMemberRow(boolean guest) {
         when(memberRepository.findById(MEMBER_ID)).thenReturn(Mono.just(
                 new MemberEntity(MEMBER_ID, 1L, "tester", "tester@example.com", "stored-hash",

@@ -16,6 +16,7 @@ import com.wordonline.account.dto.MemberResponse;
 import com.wordonline.account.service.MemberService;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -39,6 +40,15 @@ public class MemberController {
             @PathVariable Long memberId
     ) {
         return memberService.getMember(memberId)
+                .map(MemberResponse::new);
+    }
+
+    @GetMapping("/search")
+    public Flux<MemberResponse> searchMembers(
+            @org.springframework.web.bind.annotation.RequestParam("query") String query,
+            @org.springframework.web.bind.annotation.RequestParam(value = "limit", defaultValue = "20") int limit
+    ) {
+        return memberService.searchMembers(query, limit)
                 .map(MemberResponse::new);
     }
 
