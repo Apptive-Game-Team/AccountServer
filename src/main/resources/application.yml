@@ -22,6 +22,9 @@ management:
 spring:
   application:
     name: account-server
+  threads:
+    virtual:
+      enabled: ${VIRTUAL_THREADS_ENABLED:true}
   config:
     import: optional:file:.env[.properties]
   r2dbc:
