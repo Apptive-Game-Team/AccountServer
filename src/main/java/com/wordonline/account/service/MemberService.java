@@ -85,8 +85,11 @@ public class MemberService {
                         memberEntity.getId()));
 
         Flux<AuthorityEntity> authorityFlux = memberAuthorityFlux
-                .flatMap(memberAuthority -> authorityRepository.findById(
-                        memberAuthority.getAuthorityId()));
+                .map(MemberAuthority::getAuthorityId)
+                .collectList()
+                .flatMapMany(ids -> ids.isEmpty()
+                        ? Flux.empty()
+                        : authorityRepository.findAllById(ids));
 
         return Mono.zip(memberEntityMono, authorityFlux.collectList())
                 .flatMap(tuple -> {
