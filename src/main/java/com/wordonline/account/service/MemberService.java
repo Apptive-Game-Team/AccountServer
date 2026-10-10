@@ -138,6 +138,15 @@ public class MemberService {
         return memberRepository.count();
     }
 
+    public Flux<Member> searchMembers(String query, int limit) {
+        if (query == null || query.isBlank()) {
+            return Flux.empty();
+        }
+        int clampedLimit = Math.min(Math.max(limit, 1), 50);
+        return memberRepository.searchMembers(query.trim(), clampedLimit)
+                .map(MemberEntity::toDomain);
+    }
+
     public Mono<Void> deleteMember(long memberId) {
         return memberRepository.deleteById(memberId);
     }

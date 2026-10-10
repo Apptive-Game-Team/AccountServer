@@ -12,6 +12,9 @@ public interface MemberRepository extends R2dbcRepository<MemberEntity, Long> {
 
     Mono<MemberEntity> findByEmail(String email);
 
+    @Query("SELECT * FROM member WHERE LOWER(name) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(email) = LOWER(:query) ORDER BY id LIMIT :limit")
+    Flux<MemberEntity> searchMembers(String query, int limit);
+
     @Query("SELECT * FROM member ORDER BY id LIMIT :size OFFSET :offset")
     Flux<MemberEntity> findPage(long offset, int size);
 }
