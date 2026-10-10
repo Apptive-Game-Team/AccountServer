@@ -95,8 +95,7 @@ public class AuthorityService {
         if (authorityIds == null || authorityIds.isEmpty()) {
             return Flux.empty();
         }
-        return Flux.fromIterable(authorityIds)
-                .flatMap(authorityRepository::findById)
+        return authorityRepository.findAllById(authorityIds)
                 .flatMap(authorityMapper::toDomain);
     }
 }
