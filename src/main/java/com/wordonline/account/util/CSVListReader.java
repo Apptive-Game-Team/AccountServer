@@ -14,7 +14,9 @@ import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CSVListReader {
@@ -34,7 +36,7 @@ public class CSVListReader {
                 list.add(line.trim());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("[ERROR] Failed to read CSV file from path: {}", filePath, e);
         }
         return list;
     }
