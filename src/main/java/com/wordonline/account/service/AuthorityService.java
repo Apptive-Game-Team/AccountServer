@@ -27,7 +27,6 @@ public class AuthorityService {
     private final MemberAuthorityRepository memberAuthorityRepository;
     private final AuthorityRepository authorityRepository;
     private final AuthorityMapper authorityMapper;
-    private final AuthorizationService authorizationService;
 
     public Mono<Boolean> grantAuthority(Long adminId, Long applierId, Long authorityId) {
 
