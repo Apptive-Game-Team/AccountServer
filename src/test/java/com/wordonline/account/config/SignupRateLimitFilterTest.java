@@ -49,6 +49,9 @@ class SignupRateLimitFilterTest {
         }
     }
 
+    private static final SignupRateLimitProperties PROPERTIES =
+            new SignupRateLimitProperties(2, 3, Duration.ofHours(1), 100, "X-Real-IP");
+
     private MutableClock clock;
     private AtomicInteger passed;
     private WebFilterChain chain;
@@ -63,7 +66,7 @@ class SignupRateLimitFilterTest {
             return Mono.empty();
         };
         filter = new SignupRateLimitFilter(
-                new SignupRateLimitProperties(2, 3, Duration.ofHours(1), 100), clock);
+                PROPERTIES, clock, new ClientIpResolver(PROPERTIES));
     }
 
     private MockServerWebExchange call(HttpMethod method, String path, String ip)

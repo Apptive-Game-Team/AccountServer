@@ -13,13 +13,16 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
  * @param guest      requests per window for POST /api/members/guest
  * @param window     length of the fixed window
  * @param maxEntries most IP addresses tracked per endpoint at once
+ * @param clientIpHeader header the reverse proxy sets to the real peer address; see
+ *                       ClientIpResolver
  */
 @ConfigurationProperties(prefix = "signup-rate-limit")
 public record SignupRateLimitProperties(
         @DefaultValue("5") int members,
         @DefaultValue("20") int guest,
         @DefaultValue("1h") Duration window,
-        @DefaultValue("10000") int maxEntries
+        @DefaultValue("10000") int maxEntries,
+        @DefaultValue("X-Real-IP") String clientIpHeader
 ) {
 
 }

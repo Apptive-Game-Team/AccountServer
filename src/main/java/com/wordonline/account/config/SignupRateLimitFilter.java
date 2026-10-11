@@ -1,6 +1,5 @@
 package com.wordonline.account.config;
 
-import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 
@@ -23,8 +22,7 @@ import reactor.core.publisher.Mono;
  * POST /api/members/guest.
  *
  * <p>Ordered after the security filter chain (-100) so a 429 still carries the CORS headers the
- * website needs to read it. The address is the request's remote address, which is the
- * X-Forwarded-For client once server.forward-headers-strategy is on.
+ * website needs to read it. The address comes from ClientIpResolver.
  */
 @Slf4j
 @Component
@@ -37,8 +35,11 @@ public class SignupRateLimitFilter implements WebFilter {
 
     private final FixedWindowRateLimiter membersLimiter;
     private final FixedWindowRateLimiter guestLimiter;
+    private final ClientIpResolver clientIpResolver;
 
-    public SignupRateLimitFilter(SignupRateLimitProperties properties, Clock clock) {
+    public SignupRateLimitFilter(SignupRateLimitProperties properties, Clock clock,
+            ClientIpResolver clientIpResolver) {
+        this.clientIpResolver = clientIpResolver;
         this.membersLimiter = new FixedWindowRateLimiter(properties.members(),
                 properties.window(), properties.maxEntries(), clock);
         this.guestLimiter = new FixedWindowRateLimiter(properties.guest(),
@@ -61,7 +62,7 @@ public class SignupRateLimitFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        String ip = clientIp(request);
+        String ip = clientIpResolver.resolve(request);
         FixedWindowRateLimiter.Decision decision = limiter.tryAcquire(ip);
         if (decision.allowed()) {
             return chain.filter(exchange);
@@ -76,13 +77,5 @@ public class SignupRateLimitFilter implements WebFilter {
         response.getHeaders().setContentType(new MediaType("text", "plain", StandardCharsets.UTF_8));
         var body = response.bufferFactory().wrap(LIMITED_MESSAGE.getBytes(StandardCharsets.UTF_8));
         return response.writeWith(Mono.just(body));
-    }
-
-    public static String clientIp(ServerHttpRequest request) {
-        InetSocketAddress address = request.getRemoteAddress();
-        if (address == null || address.getAddress() == null) {
-            return "unknown";
-        }
-        return address.getAddress().getHostAddress();
     }
 }

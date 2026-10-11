@@ -41,7 +41,10 @@ class AuthenticationControllerTest {
         turnstileVerifier = mock(TurnstileVerifier.class);
         when(turnstileVerifier.verify(any(), any())).thenReturn(Mono.empty());
         client = WebTestClient.bindToController(
-                        new AuthenticationController(authenticationService, turnstileVerifier))
+                        new AuthenticationController(authenticationService, turnstileVerifier,
+                                new com.wordonline.account.config.ClientIpResolver(
+                                        new com.wordonline.account.config.SignupRateLimitProperties(
+                                                5, 20, java.time.Duration.ofHours(1), 100, "X-Real-IP"))))
                 .controllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
