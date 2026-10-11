@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 
 import com.wordonline.account.config.RefreshTokenCookie;
+import com.wordonline.account.config.SignupRateLimitFilter;
 import com.wordonline.account.domain.GuestTokens;
 import com.wordonline.account.domain.IssuedTokens;
 import com.wordonline.account.dto.AuthResponse;
@@ -25,6 +26,7 @@ import com.wordonline.account.dto.LoginRequest;
 import com.wordonline.account.dto.RefreshRequest;
 import com.wordonline.account.dto.TokenDelivery;
 import com.wordonline.account.service.AuthenticationService;
+import com.wordonline.account.service.TurnstileVerifier;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +39,7 @@ import reactor.core.publisher.Mono;
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
+    private final TurnstileVerifier turnstileVerifier;
 
     @PostMapping("/members/guest")
     public Mono<GuestAuthResponse> createGuestMember(
@@ -57,7 +60,9 @@ public class AuthenticationController {
             ServerWebExchange exchange
     ) {
         TokenDelivery delivery = TokenDelivery.fromHeader(deliveryHeader);
-        return authenticationService.join(joinRequest, delivery)
+        String clientIp = SignupRateLimitFilter.clientIp(exchange.getRequest());
+        return turnstileVerifier.verify(joinRequest.captchaToken(), clientIp)
+                .then(Mono.defer(() -> authenticationService.join(joinRequest, delivery)))
                 .map(tokens -> toAuthResponse(tokens, delivery, exchange));
     }
 

@@ -4,6 +4,9 @@ server:
   domain: ${DOMAIN}
   external-port: ${EXTERNAL_PORT}
   internal-base-url: ${INTERNAL_BASE_URL:}
+  # Makes the request's remote address the X-Forwarded-For client, which the sign-up rate limit
+  # keys on. The reverse proxy must overwrite X-Forwarded-For, not append to a client's value.
+  forward-headers-strategy: framework
 
 # Metrics run on their own port so the public app port never serves /actuator.
 # Health and Prometheus endpoints allow unauthenticated scrapes.
@@ -52,3 +55,20 @@ jwt:
 # allows the same host, in CorsConfig.
 cors:
   allowed-origins: "${CORS_ALLOWED_ORIGINS:https://arcanecasters.theevilent.com,https://account.theevilent.com,https://html-classic.itch.zone,http://localhost:[*]}"
+
+# Cloudflare Turnstile on POST /api/members. An empty secret-key turns verification off, with a
+# WARN at startup. captchaToken stays optional (required: false) because the Android, desktop and
+# WebGL clients cannot render the widget; turn required on once all registered sign-ups go
+# through the website.
+turnstile:
+  secret-key: ${TURNSTILE_SECRET_KEY:}
+  required: ${TURNSTILE_REQUIRED:false}
+  verify-url: https://challenges.cloudflare.com/turnstile/v0/siteverify
+  timeout: 5s
+
+# Per-IP sign-up limits, counted in memory, so each limit applies per server instance.
+signup-rate-limit:
+  members: 5
+  guest: 20
+  window: 1h
+  max-entries: 10000
