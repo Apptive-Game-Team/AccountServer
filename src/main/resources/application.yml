@@ -50,5 +50,6 @@ jwt:
 # stranger could not already ask for: the refresh cookie is SameSite=Lax and is never attached
 # from there, and without it every endpoint on this list still needs a token. The game server
 # allows the same host, in CorsConfig.
+# theevilent.com is the team website, whose account page logs in with the refresh cookie.
 cors:
-  allowed-origins: "${CORS_ALLOWED_ORIGINS:https://arcanecasters.theevilent.com,https://account.theevilent.com,https://html-classic.itch.zone,http://localhost:[*]}"
+  allowed-origins: "${CORS_ALLOWED_ORIGINS:https://theevilent.com,https://arcanecasters.theevilent.com,https://account.theevilent.com,https://html-classic.itch.zone,http://localhost:[*]}"
