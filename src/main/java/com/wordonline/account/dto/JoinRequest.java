@@ -7,7 +7,14 @@ import org.hibernate.validator.constraints.Length;
 public record JoinRequest(
         @Email(message = "이메일이 올바르지 않습니다.") String email,
         @Length(min = 0, max = 31, message = "이름은 31자 이하이어야 합니다.") String name,
-        @Length(min = 8, message = "비밀번호는 8자 이상이어야 합니다.") String password
+        @Length(min = 8, message = "비밀번호는 8자 이상이어야 합니다.") String password,
+        // Optional on purpose: the Android, desktop and WebGL clients cannot render the
+        // Turnstile widget and send no token. See TurnstileVerifier.
+        String captchaToken
 ) {
+
+    public JoinRequest(String email, String name, String password) {
+        this(email, name, password, null);
+    }
 
 }
