@@ -18,6 +18,7 @@ import com.wordonline.account.domain.GuestTokens;
 import com.wordonline.account.domain.IssuedTokens;
 import com.wordonline.account.dto.TokenDelivery;
 import com.wordonline.account.service.AuthenticationService;
+import com.wordonline.account.service.TurnstileVerifier;
 
 import reactor.core.publisher.Mono;
 
@@ -31,13 +32,19 @@ class AuthenticationControllerTest {
     private static final String COOKIE_NAME = "refreshToken";
 
     private AuthenticationService authenticationService;
+    private TurnstileVerifier turnstileVerifier;
     private WebTestClient client;
 
     @BeforeEach
     void setUp() {
         authenticationService = mock(AuthenticationService.class);
+        turnstileVerifier = mock(TurnstileVerifier.class);
+        when(turnstileVerifier.verify(any(), any())).thenReturn(Mono.empty());
         client = WebTestClient.bindToController(
-                        new AuthenticationController(authenticationService))
+                        new AuthenticationController(authenticationService, turnstileVerifier,
+                                new com.wordonline.account.config.ClientIpResolver(
+                                        new com.wordonline.account.config.SignupRateLimitProperties(
+                                                5, 20, java.time.Duration.ofHours(1), 100, "X-Real-IP"))))
                 .controllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -169,5 +176,44 @@ class AuthenticationControllerTest {
                 .expectStatus().isNoContent()
                 .expectCookie().maxAge(COOKIE_NAME, Duration.ZERO)
                 .expectCookie().path(COOKIE_NAME, "/api/auth");
+    }
+
+    @Test
+    void joinPassesTheCaptchaTokenToTheVerifierAndWorksWithoutOne() {
+        when(authenticationService.join(any(), eq(TokenDelivery.BODY)))
+                .thenReturn(Mono.just(new IssuedTokens("access.jwt", "opaque-refresh", 3600L)));
+
+        client.post().uri("/api/members")
+                .header("Content-Type", "application/json")
+                .bodyValue("""
+                        {"email":"a@example.com","name":"a","password":"12345678",
+                         "captchaToken":"cf-token"}""")
+                .exchange()
+                .expectStatus().isOk();
+        verify(turnstileVerifier).verify(eq("cf-token"), any());
+
+        client.post().uri("/api/members")
+                .header("Content-Type", "application/json")
+                .bodyValue("""
+                        {"email":"a@example.com","name":"a","password":"12345678"}""")
+                .exchange()
+                .expectStatus().isOk();
+        verify(turnstileVerifier).verify(eq(null), any());
+    }
+
+    @Test
+    void joinIsRejectedBeforeRegistrationWhenTheCaptchaFails() {
+        when(turnstileVerifier.verify(any(), any())).thenReturn(Mono.error(
+                new ResponseStatusException(HttpStatus.BAD_REQUEST, "자동 가입 방지 확인에 실패했습니다. 다시 시도해 주세요.")));
+
+        client.post().uri("/api/members")
+                .header("Content-Type", "application/json")
+                .bodyValue("""
+                        {"email":"a@example.com","name":"a","password":"12345678",
+                         "captchaToken":"bad"}""")
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(String.class).isEqualTo("자동 가입 방지 확인에 실패했습니다. 다시 시도해 주세요.");
+        org.mockito.Mockito.verifyNoInteractions(authenticationService);
     }
 }
