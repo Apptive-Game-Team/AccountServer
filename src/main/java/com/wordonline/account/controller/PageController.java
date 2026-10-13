@@ -43,6 +43,9 @@ public class PageController {
                                 .path("/")
                                 .maxAge(3600) // 1 hour
                                 .secure(true) // Should be true in production
+                                // The admin pages left CORS, so this keeps another site's
+                                // form POST from carrying the admin session.
+                                .sameSite("Strict")
                                 .build();
                         exchange.getResponse().addCookie(cookie);
                         return "redirect:/admin";
