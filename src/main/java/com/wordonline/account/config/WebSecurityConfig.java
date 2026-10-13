@@ -181,8 +181,9 @@ public class WebSecurityConfig {
      *
      * <p>Registered on the API only. The Thymeleaf pages under /login and /admin are served and
      * submitted from this server's own origin, and their form POST can arrive with
-     * {@code Origin: null} when the proxy sends {@code Referrer-Policy: no-referrer}; CORS on
-     * those paths rejected the admin login with a 403.
+     * {@code Origin: null} under Spring Security's default
+     * {@code Referrer-Policy: no-referrer}; CORS on those paths rejected the admin login with a
+     * 403.
      */
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
