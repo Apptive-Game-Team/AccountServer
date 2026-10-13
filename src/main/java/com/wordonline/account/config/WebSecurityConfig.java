@@ -178,6 +178,12 @@ public class WebSecurityConfig {
      * as the caller's own Origin together with {@code Access-Control-Allow-Credentials: true},
      * which would let any website spend a logged-in member's refresh cookie and mint access
      * tokens for them.
+     *
+     * <p>Registered on the API only. The Thymeleaf pages under /login and /admin are served and
+     * submitted from this server's own origin, and their form POST can arrive with
+     * {@code Origin: null} under Spring Security's default
+     * {@code Referrer-Policy: no-referrer}; CORS on those paths rejected the admin login with a
+     * 403.
      */
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -187,7 +193,7 @@ public class WebSecurityConfig {
         configuration.setAllowCredentials(true);
 
         var source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/**", configuration);
         return source;
     }
 
