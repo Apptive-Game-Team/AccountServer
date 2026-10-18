@@ -1,7 +1,6 @@
 package com.wordonline.account.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -17,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.wordonline.account.config.JwtProvider;
 import com.wordonline.account.domain.Authority;
 import com.wordonline.account.dto.ServerTokenRequest;
-import com.wordonline.account.dto.ServerTokenResponse;
 import com.wordonline.account.entity.System;
 
 import reactor.core.publisher.Flux;
