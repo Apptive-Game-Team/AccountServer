@@ -38,15 +38,12 @@ class AuthorityServiceTest {
     @Mock
     private AuthorityMapper authorityMapper;
 
-    @Mock
-    private AuthorizationService authorizationService;
-
     private AuthorityService authorityService;
 
     @BeforeEach
     void setUp() {
         authorityService = new AuthorityService(memberRepository, memberAuthorityRepository,
-                authorityRepository, authorityMapper, authorizationService);
+                authorityRepository, authorityMapper);
     }
 
     @Test
