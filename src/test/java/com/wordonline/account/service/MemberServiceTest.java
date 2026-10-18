@@ -155,6 +155,30 @@ class MemberServiceTest {
         verify(memberRepository).searchMembers("ali", 50);
     }
 
+    @Test
+    void getMember_loadsAuthoritiesInBatchWithFindAllById() {
+        MemberEntity memberEntity = new MemberEntity(MEMBER_ID, 100L, "User", "user@example.com", "hash", false);
+        com.wordonline.account.entity.MemberAuthority ma1 = new com.wordonline.account.entity.MemberAuthority(MEMBER_ID, 10L);
+        com.wordonline.account.entity.MemberAuthority ma2 = new com.wordonline.account.entity.MemberAuthority(MEMBER_ID, 20L);
+        com.wordonline.account.entity.AuthorityEntity auth1 = new com.wordonline.account.entity.AuthorityEntity(10L, 1L, "ROLE_ADMIN");
+        com.wordonline.account.entity.AuthorityEntity auth2 = new com.wordonline.account.entity.AuthorityEntity(20L, 1L, "ROLE_USER");
+        com.wordonline.account.domain.Authority domainAuth1 = new com.wordonline.account.domain.Authority(10L, null, "ROLE_ADMIN");
+        com.wordonline.account.domain.Authority domainAuth2 = new com.wordonline.account.domain.Authority(20L, null, "ROLE_USER");
+
+        when(memberRepository.findById(MEMBER_ID)).thenReturn(Mono.just(memberEntity));
+        when(memberAuthorityRepository.findAllByMemberId(MEMBER_ID)).thenReturn(Flux.just(ma1, ma2));
+        when(authorityRepository.findAllById(java.util.List.of(10L, 20L))).thenReturn(Flux.just(auth1, auth2));
+        when(authorityMapper.toDomain(auth1)).thenReturn(Mono.just(domainAuth1));
+        when(authorityMapper.toDomain(auth2)).thenReturn(Mono.just(domainAuth2));
+
+        StepVerifier.create(memberService.getMember(MEMBER_ID))
+                .expectNextMatches(member -> member.getId().equals(MEMBER_ID) && member.getAuthorityList().size() == 2)
+                .verifyComplete();
+
+        verify(authorityRepository).findAllById(java.util.List.of(10L, 20L));
+        verify(authorityRepository, never()).findById(any(Long.class));
+    }
+
     private void givenMemberRow(boolean guest) {
         when(memberRepository.findById(MEMBER_ID)).thenReturn(Mono.just(
                 new MemberEntity(MEMBER_ID, 1L, "tester", "tester@example.com", "stored-hash",
