@@ -55,28 +55,28 @@ public class AdminController {
     }
 
     @PostMapping("/systems")
-    public String createSystem(
+    public Mono<String> createSystem(
             ServerWebExchange exchange,
             @AuthenticationPrincipal Jwt principal
     ) {
-        exchange.getFormData()
+        return exchange.getFormData()
                 .flatMap(formdata -> {
                     String name = formdata.getFirst("name");
                     return systemService.createSystem(principal.getClaim("memberId"), name);
-                }).subscribe();
-        return "redirect:/admin/systems";
+                })
+                .thenReturn("redirect:/admin/systems");
     }
 
     @PostMapping("/systems/{id}")
-    public String updateSystem(
+    public Mono<String> updateSystem(
             @PathVariable Long id,
             ServerWebExchange exchange) {
-        exchange.getFormData()
+        return exchange.getFormData()
                 .flatMap(formdata -> {
                     String name = formdata.getFirst("name");
                     return systemService.updateSystem(id, name);
-                }).subscribe();
-        return "redirect:/admin/systems";
+                })
+                .thenReturn("redirect:/admin/systems");
     }
 
     @GetMapping("/members")
@@ -116,26 +116,26 @@ public class AdminController {
     }
 
     @PostMapping("/authorities")
-    public String createAuthority(ServerWebExchange exchange) {
-        exchange.getFormData()
+    public Mono<String> createAuthority(ServerWebExchange exchange) {
+        return exchange.getFormData()
                 .flatMap(formdata -> {
                     String name = formdata.getFirst("name");
                     Long systemId = Long.parseLong(formdata.getFirst("systemId"));
                     return authorityService.createAuthority(systemId, name);
-                }).subscribe();
-        return "redirect:/admin/authorities";
+                })
+                .thenReturn("redirect:/admin/authorities");
     }
 
     @PostMapping("/authorities/{id}")
-    public String updateAuthority(
+    public Mono<String> updateAuthority(
             @PathVariable Long id,
             ServerWebExchange exchange) {
-        exchange.getFormData()
+        return exchange.getFormData()
                 .flatMap(formdata -> {
                     String name = formdata.getFirst("name");
                     return authorityService.updateAuthority(id, name);
-                }).subscribe();
-        return "redirect:/admin/authorities";
+                })
+                .thenReturn("redirect:/admin/authorities");
     }
 
     @GetMapping("/members/{id}")
