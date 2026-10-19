@@ -24,7 +24,8 @@ class WebSecurityConfigTest {
 
     private static final String WEBGL_ORIGIN = "https://arcanecasters.theevilent.com";
     private static final List<String> ALLOWED_ORIGINS = List.of(
-            WEBGL_ORIGIN, "https://account.theevilent.com", "http://localhost:[*]");
+            WEBGL_ORIGIN, "https://account.theevilent.com", "http://localhost:[*]",
+            "http://127.0.0.1:[*]");
 
     private WebTestClient client;
     private WebSecurityConfig config;
@@ -87,7 +88,7 @@ class WebSecurityConfigTest {
 
     // WebTestClient only fills in the request scheme when the URI is absolute, and the CORS
     // processor needs it to tell a cross-site request from a same-origin one.
-    private static final String PREFLIGHT_URI = "http://localhost:8080/api/auth/refresh";
+    private static final String PREFLIGHT_URI = "http://127.0.0.1:8080/api/auth/refresh";
 
     @Test
     void credentialedRequestsFromAnUnlistedSiteArePrevented() {
@@ -119,6 +120,17 @@ class WebSecurityConfigTest {
                 .expectStatus().isOk()
                 .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
                         "http://localhost:5173");
+    }
+
+    @Test
+    void loopbackAddressKeepsCredentialedAccessOnAnyDevelopmentPort() {
+        client.options().uri(PREFLIGHT_URI)
+                .header(HttpHeaders.ORIGIN, "http://127.0.0.1:5173")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN,
+                        "http://127.0.0.1:5173");
     }
 
     @Test

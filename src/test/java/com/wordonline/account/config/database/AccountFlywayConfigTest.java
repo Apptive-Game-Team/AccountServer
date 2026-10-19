@@ -13,8 +13,8 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 class AccountFlywayConfigTest {
 
-    // localhost:1 is never listening, so migrate() fails the moment it opens a connection.
-    private static final String UNREACHABLE_ACCOUNT_URL = "r2dbc:postgresql://localhost:1/account";
+    // 127.0.0.1:1 is never listening, so migrate() fails the moment it opens a connection.
+    private static final String UNREACHABLE_ACCOUNT_URL = "r2dbc:postgresql://127.0.0.1:1/account";
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(AccountFlywayConfig.class)
@@ -46,7 +46,7 @@ class AccountFlywayConfigTest {
     @Test
     void failsStartupWhenAccountUrlIsNotR2dbcPostgresql() {
         contextRunner
-                .withPropertyValues("spring.r2dbc.account.url=jdbc:postgresql://localhost:5432/account")
+                .withPropertyValues("spring.r2dbc.account.url=jdbc:postgresql://127.0.0.1:5432/account")
                 .run(context -> assertThat(context).hasFailed()
                         .getFailure()
                         .hasStackTraceContaining(AccountFlywayConfig.ACCOUNT_URL_PROPERTY));
