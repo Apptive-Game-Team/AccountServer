@@ -122,6 +122,15 @@ class WebSecurityConfigTest {
     }
 
     @Test
+    void adminLoginFormAcceptsANullOrigin() {
+        // Chrome sends Origin: null on a form POST from a page under Referrer-Policy: no-referrer.
+        client.post().uri("http://localhost:8080/login")
+                .header(HttpHeaders.ORIGIN, "null")
+                .exchange()
+                .expectStatus().isOk();
+    }
+
+    @Test
     void aWildcardOriginIsRefusedAtStartup() {
         WebSecurityConfig wildcard = new WebSecurityConfig(new CookieAuthenticationFilter());
         ReflectionTestUtils.setField(wildcard, "allowedOrigins", List.of("*"));
