@@ -89,4 +89,33 @@ class AuthorityServiceTest {
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }
+
+    @Test
+    void getAuthoritiesByIdsReturnsEmptyWhenNullOrEmpty() {
+        StepVerifier.create(authorityService.getAuthoritiesByIds(null))
+                .verifyComplete();
+
+        StepVerifier.create(authorityService.getAuthoritiesByIds(java.util.Collections.emptyList()))
+                .verifyComplete();
+    }
+
+    @Test
+    void getAuthoritiesByIdsUsesFindAllById() {
+        java.util.List<Long> ids = java.util.List.of(10L, 20L);
+        AuthorityEntity entity1 = new AuthorityEntity(10L, 1L, "READ");
+        AuthorityEntity entity2 = new AuthorityEntity(20L, 1L, "WRITE");
+        com.wordonline.account.entity.System system = new com.wordonline.account.entity.System(1L, 1L, "SYS", 1L);
+        com.wordonline.account.domain.Authority auth1 = new com.wordonline.account.domain.Authority(entity1, system);
+        com.wordonline.account.domain.Authority auth2 = new com.wordonline.account.domain.Authority(entity2, system);
+
+        when(authorityRepository.findAllById(ids)).thenReturn(reactor.core.publisher.Flux.just(entity1, entity2));
+        when(authorityMapper.toDomain(entity1)).thenReturn(Mono.just(auth1));
+        when(authorityMapper.toDomain(entity2)).thenReturn(Mono.just(auth2));
+
+        StepVerifier.create(authorityService.getAuthoritiesByIds(ids))
+                .expectNext(auth1, auth2)
+                .verifyComplete();
+
+        verify(authorityRepository).findAllById(ids);
+    }
 }
