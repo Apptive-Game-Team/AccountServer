@@ -1,7 +1,7 @@
 package com.wordonline.account.util;
 
+import java.security.SecureRandom;
 import java.util.List;
-import java.util.Random;
 
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NicknameGenerator {
 
-    private static final Random random = new Random();
+    private static final SecureRandom random = new SecureRandom();
 
     private final static String nameFormat = "%s %s %s";
     private final static String DEFAULT_LOCALE = "kr";
