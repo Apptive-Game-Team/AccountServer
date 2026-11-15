@@ -67,10 +67,7 @@ public class AuthenticationService {
                 .flatMap(member -> issueTokens(member, delivery));
     }
 
-    /**
-     * The Thymeleaf login form keeps the access token in its own cookie and has no use for a
-     * refresh token, so signing in there does not open a token family.
-     */
+    /** 갱신 세션 없이 액세스 토큰만 발급한다. */
     public Mono<String> issueAccessToken(LoginRequest memberRequest) {
         return authenticate(memberRequest)
                 .map(jwtProvider::getJwt);

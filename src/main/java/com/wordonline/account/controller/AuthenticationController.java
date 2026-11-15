@@ -103,10 +103,11 @@ public class AuthenticationController {
     ) {
         TokenDelivery delivery = TokenDelivery.fromHeader(deliveryHeader);
         String presentedToken = presentedRefreshToken(delivery, refreshRequest, exchange);
-        if (delivery == TokenDelivery.COOKIE) {
-            exchange.getResponse().addCookie(RefreshTokenCookie.cleared());
-        }
-        return authenticationService.logout(presentedToken);
+        return authenticationService.logout(presentedToken).doOnSuccess(unused -> {
+            if (delivery == TokenDelivery.COOKIE) {
+                exchange.getResponse().addCookie(RefreshTokenCookie.cleared());
+            }
+        });
     }
 
     @GetMapping("/members/check")

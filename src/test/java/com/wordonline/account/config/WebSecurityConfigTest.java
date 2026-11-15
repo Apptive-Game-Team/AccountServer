@@ -23,8 +23,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 class WebSecurityConfigTest {
 
     private static final String WEBGL_ORIGIN = "https://arcanecasters.theevilent.com";
+    private static final String WEBSITE_ORIGIN = "https://theevilent.com";
     private static final List<String> ALLOWED_ORIGINS = List.of(
-            WEBGL_ORIGIN, "https://account.theevilent.com", "http://localhost:[*]");
+            WEBGL_ORIGIN, WEBSITE_ORIGIN, "https://account.theevilent.com", "http://localhost:[*]");
 
     private WebTestClient client;
     private WebSecurityConfig config;
@@ -108,6 +109,31 @@ class WebSecurityConfigTest {
                 .expectStatus().isOk()
                 .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, WEBGL_ORIGIN)
                 .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+    }
+
+    @Test
+    void theWebsiteCanRefreshButCannotUseTheConsoleRefreshRoute() {
+        client.options().uri(PREFLIGHT_URI)
+                .header(HttpHeaders.ORIGIN, WEBSITE_ORIGIN)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "X-Token-Delivery")
+                .exchange().expectStatus().isOk()
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, WEBSITE_ORIGIN)
+                .expectHeader().valueEquals(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true");
+        client.options().uri("http://localhost:8080/login/session/refresh")
+                .header(HttpHeaders.ORIGIN, WEBSITE_ORIGIN)
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
+                .header(HttpHeaders.ACCESS_CONTROL_REQUEST_HEADERS, "X-Console-Session")
+                .exchange().expectStatus().isForbidden()
+                .expectHeader().doesNotExist(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN);
+    }
+
+    @Test
+    void expiredConsoleAccessReturnsToLogin() {
+        client.get().uri("/admin/members?page=2")
+                .cookie("accessToken", "invalid")
+                .exchange().expectStatus().isFound()
+                .expectHeader().valueEquals(HttpHeaders.LOCATION, "/login");
     }
 
     @Test

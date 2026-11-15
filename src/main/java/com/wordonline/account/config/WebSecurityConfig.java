@@ -30,6 +30,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.web.server.BearerTokenServerAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.authentication.JwtReactiveAuthenticationManager;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -37,6 +38,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.server.ServerWebExchange;
 
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
@@ -48,6 +50,7 @@ import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
 
 import lombok.RequiredArgsConstructor;
+import reactor.core.publisher.Mono;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -140,8 +143,11 @@ public class WebSecurityConfig {
                                         "/api/auth/refresh",
                                         "/api/auth/logout",
                                         "/login",
+                                        "/login/session/refresh",
+                                        "/login/session/logout",
                                         "/join",
                                         "/css/**",
+                                        "/js/console-session.js",
                                         "/images/**",
                                         "/favicon.ico",
                                         "/.well-known/jwks").permitAll()
@@ -149,13 +155,7 @@ public class WebSecurityConfig {
                                 .anyExchange().authenticated()
                 );
 
-        http.exceptionHandling(ex -> ex
-                .authenticationEntryPoint((exchange, e) -> {
-                    exchange.getResponse().setStatusCode(HttpStatus.FOUND);
-                    exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
-                    return exchange.getResponse().setComplete();
-                })
-        );
+        http.exceptionHandling(ex -> ex.authenticationEntryPoint((exchange, e) -> redirectToLogin(exchange)));
 
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
@@ -165,12 +165,29 @@ public class WebSecurityConfig {
         // Add cookie filter before authentication
         http.addFilterBefore(cookieAuthenticationFilter, SecurityWebFiltersOrder.AUTHENTICATION);
 
-        http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt
-                .jwtDecoder(jwtDecoder)
-                .jwtAuthenticationConverter(jwtAuthenticationConverter)
-        ));
+        var bearerEntryPoint = new BearerTokenServerAuthenticationEntryPoint();
+        http.oauth2ResourceServer(oauth2 -> oauth2
+                .authenticationEntryPoint((exchange, e) -> {
+                    String path = exchange.getRequest().getPath().pathWithinApplication().value();
+                    if (isAdminPath(path)) {
+                        return redirectToLogin(exchange);
+                    }
+                    return bearerEntryPoint.commence(exchange, e);
+                })
+                .jwt(jwt -> jwt.jwtDecoder(jwtDecoder)
+                        .jwtAuthenticationConverter(jwtAuthenticationConverter)));
         http.csrf(CsrfSpec::disable);
         return http.build();
+    }
+
+    private static Mono<Void> redirectToLogin(ServerWebExchange exchange) {
+        exchange.getResponse().setStatusCode(HttpStatus.FOUND);
+        exchange.getResponse().getHeaders().setLocation(URI.create("/login"));
+        return exchange.getResponse().setComplete();
+    }
+
+    private static boolean isAdminPath(String path) {
+        return path.equals("/admin") || path.startsWith("/admin/");
     }
 
     /**
