@@ -30,7 +30,8 @@ class CookieAuthenticationFilterTest {
     void theAdminPagesAuthenticateWithTheCookie() {
         expectAuthorization("/admin", "Bearer " + ACCESS_TOKEN);
         expectAuthorization("/admin/members", "Bearer " + ACCESS_TOKEN);
-        expectAuthorization("/login", "Bearer " + ACCESS_TOKEN);
+        expectAuthorization("/login", "none");
+        expectAuthorization("/login/session/refresh", "none");
     }
 
     @Test

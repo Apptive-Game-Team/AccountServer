@@ -24,6 +24,10 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/admin/tokens}">Server Tokens</a>
                 </li>
+                <li class="nav-item">
+                    <button type="button" class="nav-link" th:attr="data-session-logout=@{/login/session/logout}, data-session-login=@{/login(signedOut=true)}">Logout</button>
+                    <span id="console-logout-error" class="text-warning small" role="alert" hidden>Could not sign out. Try again.</span>
+                </li>
             </ul>
         </div>
     </div>

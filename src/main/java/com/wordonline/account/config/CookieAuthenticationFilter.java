@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono;
 public class CookieAuthenticationFilter implements WebFilter {
 
     private static final String ACCESS_TOKEN_COOKIE = "accessToken";
-    private static final List<String> COOKIE_AUTHENTICATED_PATHS = List.of("/admin", "/login");
+    private static final List<String> COOKIE_AUTHENTICATED_PATHS = List.of("/admin");
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
